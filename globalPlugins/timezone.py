@@ -29,14 +29,19 @@ class SpeakThread(threading.Thread):
 
 	def getTimezone(self):
 		l = len(self.destTimezones)
-		# The length will always be at least 1 since we insert a default timezone if there is no configuration.
+		if l == 0:
+			return ""
 		return self.destTimezones[self.repeatCount%l]
 
 	def sayInTimezone(self):
+		selectedTz = self.getTimezone()
+		if selectedTz == "":
+			ui.message("No timezones set")
+			return
 		dateFormat = "%A, %B %#d, %Y"
 		timeFormat = "%#I:%M %p %Z"
 		now = datetime.now(timezone('UTC'))		
-		destTimezone = now.astimezone(timezone(self.getTimezone()))
+		destTimezone = now.astimezone(timezone(selectedTz))
 		# By the time the code gets down here, we could have signaled this thread to terminate.
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
 		if self.interrupted:
@@ -55,17 +60,39 @@ class TimezoneSelectorDialog(wx.Dialog):
 		# The label and text box will be next to each other.
 		# Below this we will find the label and listbox.
 		self.timezonesList = sHelper.addLabeledControl("Choose option", wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
+		self.timezonesList.Bind(wx.EVT_LISTBOX, self.onTimezoneSelected)
+		self.selectedTimezonesList = sHelper.addLabeledControl("Selected Timezones", wx.ListBox, choices=[])
+		self.selectedTimezonesList.AppendItems(self.gPlugin.destTimezones)
 		# The label and listbox will be below each other
 		self.filterElement.Bind(wx.EVT_TEXT, self.onFilterTextChange)
 		for tz in self.gPlugin.destTimezones:
 			self.timezonesList.SetSelection(self.timezonesList.FindString(tz))
-		button = sHelper.addItem( wx.Button(self, label="Set Timezone"))
-		button.Bind(wx.EVT_BUTTON, self.onSetTZClick)
+		removeButton = sHelper.addItem( wx.Button(self, label="Remove"))
+		removeButton.Bind(wx.EVT_BUTTON, self.onRemoveClick)
+		setButton = sHelper.addItem( wx.Button(self, label="Save"))
+		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
 		cancelButton = sHelper.addItem( wx.Button(self, label="Cancel"))
 		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
 		# TODO: Right now, the buttons are stacked. We should put them next to each other.
 
-# Used to speak the number of filtered results after a delay so that letting up on keys won't interrupt NVDA.
+	def onRemoveClick(self, event):
+		if self.selectedTimezonesList.GetSelection() == wx.NOT_FOUND:
+			return
+		tzToRemove = self.selectedTimezonesList.GetString(self.selectedTimezonesList.GetSelection())
+		self.selectedTimezonesList.Delete(self.selectedTimezonesList.GetSelection())
+		indexToRemove = self.timezonesList.FindString(tzToRemove)
+		if indexToRemove != wx.NOT_FOUND:
+			self.timezonesList.Deselect(indexToRemove)
+
+	def onTimezoneSelected(self, event):
+		if event.IsSelection():
+			if self.selectedTimezonesList.FindString(event.GetString()) == wx.NOT_FOUND:
+				self.selectedTimezonesList.Append(event.GetString())
+		else:
+			if self.selectedTimezonesList.FindString(event.GetString()) != wx.NOT_FOUND:
+				self.selectedTimezonesList.Delete(self.selectedTimezonesList.FindString(event.GetString()))
+
+	# Used to speak the number of filtered results after a delay so that letting up on keys won't interrupt NVDA.
 	def announceFilterAfterDelay(self, n):
 		sleep(0.5)
 		ui.message("%d results now showing" % n)
@@ -86,9 +113,10 @@ class TimezoneSelectorDialog(wx.Dialog):
 		t.start()
 
 	def onSetTZClick(self, event):
-		self.gPlugin.destTimezone = self.timezonesList.GetString(self.timezonesList.GetSelection())
+		zones = self.selectedTimezonesList.GetItems()
+		self.gPlugin.destTimezones = zones
 		with open(self.gPlugin.configFile, "w") as fout:
-			fout.write(json.dumps({"timezones": [self.gPlugin.destTimezone]}))
+			fout.write(json.dumps({"timezones": zones}))
 		self.Destroy()
 
 	def onCancelClick(self, event):

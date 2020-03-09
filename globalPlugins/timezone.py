@@ -7,6 +7,7 @@ from scriptHandler import script
 import globalCommands
 from globalCommands import GlobalCommands as Scripts
 import ui
+import speech
 from datetime import datetime
 pythonVersion = int(sys.version[:1])
 # Here, we use the Python2 or 3 versions of pytz
@@ -18,6 +19,32 @@ import wx
 from gui import SettingsDialog, guiHelper
 import json
 from time import sleep
+
+class SpeakThread(threading.Thread):
+	def __init__(self, repeatCount, destTimezones):
+		threading.Thread.__init__(self)
+		self.repeatCount = repeatCount
+		self.interrupted = False
+		self.destTimezones = destTimezones
+
+	def getTimezone(self):
+		l = len(self.destTimezones)
+		# The length will always be at least 1 since we insert a default timezone if there is no configuration.
+		return self.destTimezones[self.repeatCount%l]
+
+	def sayInTimezone(self):
+		dateFormat = "%A, %B %#d, %Y"
+		timeFormat = "%#I:%M %p %Z"
+		now = datetime.now(timezone('UTC'))		
+		destTimezone = now.astimezone(timezone(self.getTimezone()))
+		# By the time the code gets down here, we could have signaled this thread to terminate.
+		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
+		if self.interrupted:
+			return
+		ui.message("%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat)))
+
+	def run(self):
+		self.sayInTimezone()
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
@@ -75,38 +102,28 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if os.path.isfile(self.configFile):
 			with open(self.configFile) as fin:
 				data = json.load(fin)
-				self.destTimezone = data["timezones"][0]
+				self.destTimezones = data["timezones"]
 		else:
-			self.destTimezone = common_timezones[0]
+			self.destTimezones = [common_timezones[0]]
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
 		self.optionsMenu = wx.Menu()
 		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, "Configure Timezones", "")
-		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, "Set Timezone...", "Presents a list of timezones")
+		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, "Set Timezones...", "Presents a list of timezones")
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
+		self.lastSpeechThread = None
 
 	@script(
-		description=_("If pressed once, speaks the time in the selected timezone. If pressed twice, speaks the date in the selected timezone."),
+		description=_("Speaks the time and date in the specified timezone in the configured timezone ring according to the amount of times this key is pressed in rapid succession."),
 		category=globalCommands.SCRCAT_SYSTEM, # Same category as the NVDA speakDateTime script
 		gestures=["kb:NVDA+ALT+T"]
 	)
 	def script_sayTimezoneTime(self, gesture):
-		# For the first two key-presses, we'll fall through to NVDA's default behavior
-		if getLastScriptRepeatCount()<2:
-			Scripts.script_dateTime(globalCommands.commands, gesture)
-			return
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
-		t = threading.Thread(target=self.sayInTimezone, args=[getLastScriptRepeatCount()])
-		t.start()
-
-	def sayInTimezone(self, repeatCount):
-		dateFormat = "%A, %B %#d, %Y"
-		timeFormat = "%#I:%M %p %Z"
-		now = datetime.now(timezone('UTC'))		
-		destTimezone = now.astimezone(timezone(self.destTimezone))
-		if repeatCount==2:
-			ui.message(destTimezone.strftime(timeFormat))
-		elif repeatCount==3:
-			ui.message(destTimezone.strftime(dateFormat))
+		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
+		if self.lastSpeechThread is not None:
+			self.lastSpeechThread.interrupted = True
+		self.lastSpeechThread = SpeakThread(getLastScriptRepeatCount(), self.destTimezones)
+		self.lastSpeechThread.start()
 
 	@script(
 		description=_("Brings up the timezone selection dialog."),

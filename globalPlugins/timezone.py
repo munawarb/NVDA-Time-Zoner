@@ -85,9 +85,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
 
 	@script(
-		description=_("If pressed once, speaks the local time. If pressed twice, speaks the local date. If pressed three times, speaks the time in the selected timezone. If pressed four times, speaks the date in the selected timezone."),
+		description=_("If pressed once, speaks the time in the selected timezone. If pressed twice, speaks the date in the selected timezone."),
 		category=globalCommands.SCRCAT_SYSTEM, # Same category as the NVDA speakDateTime script
-		gestures=["kb:NVDA+F12"]
+		gestures=["kb:NVDA+ALT+T"]
 	)
 	def script_sayTimezoneTime(self, gesture):
 		# For the first two key-presses, we'll fall through to NVDA's default behavior

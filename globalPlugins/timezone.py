@@ -54,10 +54,11 @@ class TimezoneSelectorDialog(wx.Dialog):
 		self.filterElement = sHelper.addLabeledControl("Filter:", wx.TextCtrl)
 		# The label and text box will be next to each other.
 		# Below this we will find the label and listbox.
-		self.timezonesList = sHelper.addLabeledControl("Choose option", wx.ListBox, choices=common_timezones)
+		self.timezonesList = sHelper.addLabeledControl("Choose option", wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
 		# The label and listbox will be below each other
 		self.filterElement.Bind(wx.EVT_TEXT, self.onFilterTextChange)
-		self.timezonesList.SetSelection(self.timezonesList.FindString(self.gPlugin.destTimezone))
+		for tz in self.gPlugin.destTimezones:
+			self.timezonesList.SetSelection(self.timezonesList.FindString(tz))
 		button = sHelper.addItem( wx.Button(self, label="Set Timezone"))
 		button.Bind(wx.EVT_BUTTON, self.onSetTZClick)
 		cancelButton = sHelper.addItem( wx.Button(self, label="Cancel"))

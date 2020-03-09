@@ -13,6 +13,7 @@ pythonVersion = int(sys.version[:1])
 # Here, we use the Python2 or 3 versions of pytz
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules", "2" if pythonVersion == 2 else "3"))
 from pytz import timezone, common_timezones
+from tzlocal import get_localzone
 del sys.path[0]
 import gui
 import wx
@@ -40,7 +41,7 @@ class SpeakThread(threading.Thread):
 			return
 		dateFormat = "%A, %B %#d, %Y"
 		timeFormat = "%#I:%M %p %Z"
-		now = datetime.now(timezone('UTC'))		
+		now = datetime.now(timezone("UTC"))		
 		destTimezone = now.astimezone(timezone(selectedTz))
 		# By the time the code gets down here, we could have signaled this thread to terminate.
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
@@ -53,27 +54,67 @@ class SpeakThread(threading.Thread):
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title="Select A Timezone")
+		super(wx.Dialog, self).__init__(parent, title="Configure Timezone Ring")
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
 		self.filterElement = sHelper.addLabeledControl("Filter:", wx.TextCtrl)
 		# The label and text box will be next to each other.
 		# Below this we will find the label and listbox.
-		self.timezonesList = sHelper.addLabeledControl("Choose option", wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
+		self.timezonesList = sHelper.addLabeledControl("Timezones (select to add, deselect to remove)", wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
 		self.timezonesList.Bind(wx.EVT_LISTBOX, self.onTimezoneSelected)
-		self.selectedTimezonesList = sHelper.addLabeledControl("Selected Timezones", wx.ListBox, choices=[])
+		self.selectedTimezonesList = sHelper.addLabeledControl("Timezone Ring", wx.ListBox, choices=[])
 		self.selectedTimezonesList.AppendItems(self.gPlugin.destTimezones)
+		self.setTimezonesListSelections()
 		# The label and listbox will be below each other
 		self.filterElement.Bind(wx.EVT_TEXT, self.onFilterTextChange)
-		for tz in self.gPlugin.destTimezones:
-			self.timezonesList.SetSelection(self.timezonesList.FindString(tz))
 		removeButton = sHelper.addItem( wx.Button(self, label="Remove"))
 		removeButton.Bind(wx.EVT_BUTTON, self.onRemoveClick)
+		moveUpButton = sHelper.addItem( wx.Button(self, label="Move Up"))
+		moveUpButton.Bind(wx.EVT_BUTTON, self.onMoveUp)
+		moveDownButton = sHelper.addItem( wx.Button(self, label="Move Down"))
+		moveDownButton.Bind(wx.EVT_BUTTON, self.onMoveDown)
 		setButton = sHelper.addItem( wx.Button(self, label="Save"))
 		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
 		cancelButton = sHelper.addItem( wx.Button(self, label="Cancel"))
 		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
 		# TODO: Right now, the buttons are stacked. We should put them next to each other.
+
+	def isMovable(self):
+		index = self.selectedTimezonesList.GetSelection()
+		numItems = self.selectedTimezonesList.GetCount()
+		if index == wx.NOT_FOUND or numItems < 2:
+			return False
+		return True
+
+	def onMoveUp(self, event):
+		if not self.isMovable():
+			return
+		index = self.selectedTimezonesList.GetSelection()
+		if index == 0:
+			return
+		tzToMove = self.selectedTimezonesList.GetString(index)
+		self.selectedTimezonesList.InsertItems([tzToMove], index-1)
+		self.selectedTimezonesList.Delete(index+1)
+
+	def onMoveDown(self, event):
+		if not self.isMovable():
+			return
+		index = self.selectedTimezonesList.GetSelection()
+		numItems = self.selectedTimezonesList.GetCount()
+		if index == numItems-1:
+			return
+		tzToMove = self.selectedTimezonesList.GetString(index)
+		# We want to insert the item after the one below it, so we have to insert it before index+2
+		self.selectedTimezonesList.InsertItems([tzToMove], index+2)
+		self.selectedTimezonesList.Delete(index)
+
+	def setTimezonesListSelections(self):
+		# We use the selectedTimezonesList here because this is where the user will actively add and remove items.
+		# The gPlugin.destTimezones list is only updated on save.
+		for tz in self.selectedTimezonesList.GetItems():
+			index = self.timezonesList.FindString(tz)
+			if index != wx.NOT_FOUND:
+				self.timezonesList.SetSelection(index)
 
 	def onRemoveClick(self, event):
 		if self.selectedTimezonesList.GetSelection() == wx.NOT_FOUND:
@@ -95,6 +136,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 	# Used to speak the number of filtered results after a delay so that letting up on keys won't interrupt NVDA.
 	def announceFilterAfterDelay(self, n):
 		sleep(0.5)
+		speech.cancelSpeech()
 		ui.message("%d results now showing" % n)
 
 	def onFilterTextChange(self, event):
@@ -107,7 +149,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 			filtered = [option for option in common_timezones if filterText in option.lower()]
 		self.timezonesList.Set(filtered)
 		if len(filtered) > 0:
-			self.timezonesList.SetSelection(0)
+			self.setTimezonesListSelections()
 		# We'll delay the speaking of the filtered results so key presses don't interrupt it.
 		t = threading.Thread(target=self.announceFilterAfterDelay, args=[len(filtered)])
 		t.start()
@@ -133,10 +175,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				data = json.load(fin)
 				self.destTimezones = data["timezones"]
 		else:
-			self.destTimezones = [common_timezones[0]]
+			# We'll try to set the local timezone as the default.
+			zone = get_localzone().zone
+			if zone not in common_timezones:
+				self.destTimezones = []
+			else:
+				self.destTimezones = [zone]
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
 		self.optionsMenu = wx.Menu()
-		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, "Configure Timezones", "")
+		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, "Time Zoner", "")
 		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, "Set Timezones...", "Presents a list of timezones")
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
 		self.lastSpeechThread = None

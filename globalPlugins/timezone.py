@@ -21,6 +21,9 @@ import wx
 from gui import SettingsDialog, guiHelper
 import json
 from time import sleep
+import addonHandler
+
+addonHandler.initTranslation() 
 
 class SpeakThread(threading.Thread):
 	def __init__(self, repeatCount, destTimezones):
@@ -38,7 +41,7 @@ class SpeakThread(threading.Thread):
 	def sayInTimezone(self):
 		selectedTz = self.getTimezone()
 		if selectedTz == "":
-			core.callLater(0, ui.message, "No timezones set")
+			core.callLater(0, ui.message, _("No timezones set"))
 			return
 		dateFormat = "%A, %B %#d, %Y"
 		timeFormat = "%#I:%M %p %Z"
@@ -48,7 +51,7 @@ class SpeakThread(threading.Thread):
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
 		if self.interrupted:
 			return
-		core.callLater(0, ui.message, "%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat)))
+		core.callLater(0, ui.message, _("%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat))))
 
 	def run(self):
 		self.sayInTimezone()
@@ -58,27 +61,30 @@ class TimezoneSelectorDialog(wx.Dialog):
 		super(wx.Dialog, self).__init__(parent, title="Configure Timezone Ring")
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
-		self.filterElement = sHelper.addLabeledControl("Filter:", wx.TextCtrl)
+		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)
 		# The label and text box will be next to each other.
 		# Below this we will find the label and listbox.
-		self.timezonesList = sHelper.addLabeledControl("Timezones (select to add, deselect to remove)", wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
+		listBoxesHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
+		sHelper.addItem(listBoxesHelper)
+		self.timezonesList = listBoxesHelper.addLabeledControl(_("Timezones (select to add, deselect to remove)"), wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
 		self.timezonesList.Bind(wx.EVT_LISTBOX, self.onTimezoneSelected)
-		self.selectedTimezonesList = sHelper.addLabeledControl("Timezone Ring", wx.ListBox, choices=[])
+		self.selectedTimezonesList = listBoxesHelper.addLabeledControl(_("Timezone Ring"), wx.ListBox, choices=[])
 		self.selectedTimezonesList.AppendItems(self.gPlugin.destTimezones)
 		self.setTimezonesListSelections()
 		# The label and listbox will be below each other
 		self.filterElement.Bind(wx.EVT_TEXT, self.onFilterTextChange)
-		removeButton = sHelper.addItem( wx.Button(self, label="Remove"))
+		buttonsHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
+		sHelper.addItem(buttonsHelper)
+		removeButton = buttonsHelper.addItem( wx.Button(self, label=_("Remove")))
 		removeButton.Bind(wx.EVT_BUTTON, self.onRemoveClick)
-		moveUpButton = sHelper.addItem( wx.Button(self, label="Move Up"))
+		moveUpButton = buttonsHelper.addItem( wx.Button(self, label=_("Move Up")))
 		moveUpButton.Bind(wx.EVT_BUTTON, self.onMoveUp)
-		moveDownButton = sHelper.addItem( wx.Button(self, label="Move Down"))
+		moveDownButton = buttonsHelper.addItem( wx.Button(self, label=_("Move Down")))
 		moveDownButton.Bind(wx.EVT_BUTTON, self.onMoveDown)
-		setButton = sHelper.addItem( wx.Button(self, label="Save"))
+		setButton = buttonsHelper.addItem( wx.Button(self, label=_("Save")))
 		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
-		cancelButton = sHelper.addItem( wx.Button(self, label="Cancel"))
+		cancelButton = buttonsHelper.addItem( wx.Button(self, label=_("Cancel")))
 		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
-		# TODO: Right now, the buttons are stacked. We should put them next to each other.
 
 	def isMovable(self):
 		index = self.selectedTimezonesList.GetSelection()
@@ -138,7 +144,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 	def announceFilterAfterDelay(self, n):
 		sleep(0.5)
 		speech.cancelSpeech()
-		core.callLater(0, ui.message, "%d results now showing" % n)
+		core.callLater(0, ui.message, _("%d results now showing" % n))
 
 	def onFilterTextChange(self, event):
 		filterText = self.filterElement.GetValue()
@@ -184,8 +190,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.destTimezones = [zone]
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
 		self.optionsMenu = wx.Menu()
-		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, "Time Zoner", "")
-		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, "Set Timezones...", "Presents a list of timezones")
+		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, _("Time Zoner"), "")
+		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Set Timezones..."), _("Presents a list of timezones"))
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
 		self.lastSpeechThread = None
 

@@ -7,6 +7,7 @@ from scriptHandler import script
 import globalCommands
 from globalCommands import GlobalCommands as Scripts
 import ui
+import core
 import speech
 from datetime import datetime
 pythonVersion = int(sys.version[:1])
@@ -37,7 +38,7 @@ class SpeakThread(threading.Thread):
 	def sayInTimezone(self):
 		selectedTz = self.getTimezone()
 		if selectedTz == "":
-			ui.message("No timezones set")
+			core.callLater(0, ui.message, "No timezones set")
 			return
 		dateFormat = "%A, %B %#d, %Y"
 		timeFormat = "%#I:%M %p %Z"
@@ -47,7 +48,7 @@ class SpeakThread(threading.Thread):
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
 		if self.interrupted:
 			return
-		ui.message("%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat)))
+		core.callLater(0, ui.message, "%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat)))
 
 	def run(self):
 		self.sayInTimezone()
@@ -137,7 +138,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 	def announceFilterAfterDelay(self, n):
 		sleep(0.5)
 		speech.cancelSpeech()
-		ui.message("%d results now showing" % n)
+		core.callLater(0, ui.message, "%d results now showing" % n)
 
 	def onFilterTextChange(self, event):
 		filterText = self.filterElement.GetValue()

@@ -205,7 +205,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			else:
 				self.destTimezones = [zone]
 
-		# Construction of the add-on menuu
+		# Construction of the add-on menu
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
 		self.optionsMenu = wx.Menu()
 		# For translators: Name of the menu of the add-on

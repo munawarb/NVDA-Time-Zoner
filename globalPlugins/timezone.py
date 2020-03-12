@@ -12,6 +12,7 @@ import globalPluginHandler
 from scriptHandler import getLastScriptRepeatCount
 from scriptHandler import script
 import globalCommands
+import winKernel
 import ui
 import core
 import speech
@@ -50,15 +51,17 @@ class SpeakThread(threading.Thread):
 			# For translators: message to inform there are no timezones defined
 			core.callLater(0, ui.message, _("No timezones set"))
 			return
-		dateFormat = "%A, %B %#d, %Y"
-		timeFormat = "%#I:%M %p %Z"
 		now = datetime.now(timezone("UTC"))
 		destTimezone = now.astimezone(timezone(selectedTz))
 		# By the time the code gets down here, we could have signaled this thread to terminate.
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
 		if self.interrupted:
 			return
-		core.callLater(0, ui.message, _("%s, %s" % (destTimezone.strftime(timeFormat), destTimezone.strftime(dateFormat))))
+		# We'll use the winKernel here to announce the time and date in the user's locale.
+		theTime =winKernel.GetTimeFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.TIME_NOSECONDS, destTimezone, None)
+		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
+		# For translators: message to announce the time, date and timezone
+		core.callLater(0, ui.message, _("%s, %s (%s)" % (theTime, theDate, selectedTz)))
 
 	def run(self):
 		self.sayInTimezone()

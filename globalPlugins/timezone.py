@@ -1,3 +1,10 @@
+# -*- coding: UTF-8 -*-
+# timezone.py
+#A part of NVDAtimezone add-on
+#Copyright (C) 2020 Munawar Bijani
+#This file is covered by the GNU General Public License.
+#See the file LICENSE.txt for more details.
+
 import threading
 import os.path
 import sys
@@ -5,7 +12,6 @@ import globalPluginHandler
 from scriptHandler import getLastScriptRepeatCount
 from scriptHandler import script
 import globalCommands
-from globalCommands import GlobalCommands as Scripts
 import ui
 import core
 import speech
@@ -41,11 +47,12 @@ class SpeakThread(threading.Thread):
 	def sayInTimezone(self):
 		selectedTz = self.getTimezone()
 		if selectedTz == "":
+			# For translators: message to inform there are no timezones defined
 			core.callLater(0, ui.message, _("No timezones set"))
 			return
 		dateFormat = "%A, %B %#d, %Y"
 		timeFormat = "%#I:%M %p %Z"
-		now = datetime.now(timezone("UTC"))		
+		now = datetime.now(timezone("UTC"))
 		destTimezone = now.astimezone(timezone(selectedTz))
 		# By the time the code gets down here, we could have signaled this thread to terminate.
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
@@ -58,7 +65,7 @@ class SpeakThread(threading.Thread):
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title="Configure Timezone Ring")
+		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring"))
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
 		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)
@@ -66,8 +73,10 @@ class TimezoneSelectorDialog(wx.Dialog):
 		# Below this we will find the label and listbox.
 		listBoxesHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
 		sHelper.addItem(listBoxesHelper)
+		# For translators: Name of time zones list
 		self.timezonesList = listBoxesHelper.addLabeledControl(_("Timezones (select to add, deselect to remove)"), wx.ListBox, choices=common_timezones, style=wx.LB_MULTIPLE)
 		self.timezonesList.Bind(wx.EVT_LISTBOX, self.onTimezoneSelected)
+		# For translators: Name of time zones ring list
 		self.selectedTimezonesList = listBoxesHelper.addLabeledControl(_("Timezone Ring"), wx.ListBox, choices=[])
 		self.selectedTimezonesList.AppendItems(self.gPlugin.destTimezones)
 		self.setTimezonesListSelections()
@@ -75,16 +84,22 @@ class TimezoneSelectorDialog(wx.Dialog):
 		self.filterElement.Bind(wx.EVT_TEXT, self.onFilterTextChange)
 		buttonsHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
 		sHelper.addItem(buttonsHelper)
+		# For translators: Name of the button to remove a time zone
 		removeButton = buttonsHelper.addItem( wx.Button(self, label=_("Remove")))
 		removeButton.Bind(wx.EVT_BUTTON, self.onRemoveClick)
+		# For translators: Name of the button to move up a time zone
 		moveUpButton = buttonsHelper.addItem( wx.Button(self, label=_("Move Up")))
 		moveUpButton.Bind(wx.EVT_BUTTON, self.onMoveUp)
+		# For translators: Name of the button to move down a time zone
 		moveDownButton = buttonsHelper.addItem( wx.Button(self, label=_("Move Down")))
 		moveDownButton.Bind(wx.EVT_BUTTON, self.onMoveDown)
+		# For translators: Name of the button to save the selections of time zones
 		setButton = buttonsHelper.addItem( wx.Button(self, label=_("Save")))
 		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
-		cancelButton = buttonsHelper.addItem( wx.Button(self, label=_("Cancel")))
+		# For translators: Name of the button to exit without saving the selections of time zones
+		cancelButton = buttonsHelper.addDialogDismissButtons( wx.Button(self, id = wx.ID_CLOSE, label=_("Cancel")))
 		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
+		self.SetEscapeId(wx.ID_CLOSE)
 
 	def isMovable(self):
 		index = self.selectedTimezonesList.GetSelection()
@@ -144,6 +159,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 	def announceFilterAfterDelay(self, n):
 		sleep(0.5)
 		speech.cancelSpeech()
+		# For translators: Message to announce the number of matches found
 		core.callLater(0, ui.message, _("%d results now showing" % n))
 
 	def onFilterTextChange(self, event):
@@ -188,15 +204,20 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.destTimezones = []
 			else:
 				self.destTimezones = [zone]
+
+		# Construction of the add-on menuu
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
 		self.optionsMenu = wx.Menu()
+		# For translators: Name of the menu of the add-on
 		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, _("Time Zoner"), "")
-		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Set Timezones..."), _("Presents a list of timezones"))
+		# For translators: Name of the sub-menu of the add-on
+		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Configure Timezone Ring"), _("Allows the configuration of timezones"))
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
+
 		self.lastSpeechThread = None
 
 	@script(
-		description=_("Speaks the time and date in the specified timezone in the configured timezone ring according to the amount of times this key is pressed in rapid succession."),
+		description = _("Speaks the time and date in the specified timezone in the configured timezone ring according to the amount of times this key is pressed in rapid succession."),
 		category=globalCommands.SCRCAT_SYSTEM, # Same category as the NVDA speakDateTime script
 		gestures=["kb:NVDA+ALT+T"]
 	)

@@ -69,7 +69,7 @@ class SpeakThread(threading.Thread):
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring..."))
+		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring"))
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
 		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)
@@ -223,7 +223,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		# For translators: Name of the menu of the add-on
 		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, _("Time Zoner"), "")
 		# For translators: Name of the sub-menu of the add-on
-		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Configure Timezone Ring"), _("Allows the configuration of timezones"))
+		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Configure Timezone Ring..."), _("Allows the configuration of timezones"))
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
 
 		self.lastSpeechThread = None

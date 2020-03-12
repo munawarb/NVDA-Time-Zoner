@@ -33,11 +33,12 @@ import addonHandler
 addonHandler.initTranslation() 
 
 class SpeakThread(threading.Thread):
-	def __init__(self, repeatCount, destTimezones):
+	def __init__(self, repeatCount, destTimezones, announceAbbriv):
 		threading.Thread.__init__(self)
 		self.repeatCount = repeatCount
 		self.interrupted = False
 		self.destTimezones = destTimezones
+		self.announceAbbriv = announceAbbriv
 
 	def getTimezone(self):
 		l = len(self.destTimezones)
@@ -61,14 +62,14 @@ class SpeakThread(threading.Thread):
 		theTime =winKernel.GetTimeFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.TIME_NOSECONDS, destTimezone, None)
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
 		# For translators: message to announce the time, date and timezone
-		core.callLater(0, ui.message, _("%s, %s (%s)" % (theTime, theDate, selectedTz)))
+		core.callLater(0, ui.message, _("%s, %s (%s)" % (theTime, theDate, destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz)))
 
 	def run(self):
 		self.sayInTimezone()
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring"))
+		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring..."))
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
 		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)
@@ -96,11 +97,17 @@ class TimezoneSelectorDialog(wx.Dialog):
 		# For translators: Name of the button to move down a time zone
 		moveDownButton = buttonsHelper.addItem( wx.Button(self, label=_("Move Down")))
 		moveDownButton.Bind(wx.EVT_BUTTON, self.onMoveDown)
+		# For translators: The label for the checkbox to announce timezones in abbreviated form.
+		self.announceAbbriv = sHelper.addItem(wx.CheckBox(self, label=_("Announce abbreviated timezones")))
+		# Check the box by default if we're announcing abbreviations.
+		self.announceAbbriv.SetValue(self.gPlugin.announceAbbriv)
+		saveAndCancelHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
+		sHelper.addItem(saveAndCancelHelper)
 		# For translators: Name of the button to save the selections of time zones
-		setButton = buttonsHelper.addItem( wx.Button(self, label=_("Save")))
+		setButton = saveAndCancelHelper.addItem( wx.Button(self, label=_("Save")))
 		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
 		# For translators: Name of the button to exit without saving the selections of time zones
-		cancelButton = buttonsHelper.addDialogDismissButtons( wx.Button(self, id = wx.ID_CLOSE, label=_("Cancel")))
+		cancelButton = saveAndCancelHelper.addDialogDismissButtons( wx.Button(self, id = wx.ID_CLOSE, label=_("Cancel")))
 		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
 		self.SetEscapeId(wx.ID_CLOSE)
 
@@ -183,8 +190,9 @@ class TimezoneSelectorDialog(wx.Dialog):
 	def onSetTZClick(self, event):
 		zones = self.selectedTimezonesList.GetItems()
 		self.gPlugin.destTimezones = zones
+		self.gPlugin.announceAbbriv = self.announceAbbriv.GetValue()
 		with open(self.gPlugin.configFile, "w") as fout:
-			fout.write(json.dumps({"timezones": zones}))
+			fout.write(json.dumps({"announceAbbriv": self.gPlugin.announceAbbriv, "timezones": zones}))
 		self.Destroy()
 
 	def onCancelClick(self, event):
@@ -193,20 +201,21 @@ class TimezoneSelectorDialog(wx.Dialog):
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
+		self.destTimezones = [get_localzone().zone]
+		self.announceAbbriv = False
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.
 		self.configFile = os.path.join(scriptPath[:scriptPath.rindex("\\")], "timezone.json")
 		if os.path.isfile(self.configFile):
 			with open(self.configFile) as fin:
 				data = json.load(fin)
-				self.destTimezones = data["timezones"]
+				self.destTimezones = data.get("timezones", self.destTimezones)
+				self.announceAbbriv = data.get("announceAbbriv", self.announceAbbriv)
 		else:
-			# We'll try to set the local timezone as the default.
-			zone = get_localzone().zone
-			if zone not in common_timezones:
+			# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
+			# This is to rescue the script from systems that might not have a recognizable timezone.
+			if self.destTimezones[0] not in common_timezones:
 				self.destTimezones = []
-			else:
-				self.destTimezones = [zone]
 
 		# Construction of the add-on menu
 		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
@@ -229,7 +238,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		if self.lastSpeechThread is not None:
 			self.lastSpeechThread.interrupted = True
-		self.lastSpeechThread = SpeakThread(getLastScriptRepeatCount(), self.destTimezones)
+		self.lastSpeechThread = SpeakThread(getLastScriptRepeatCount(), self.destTimezones, self.announceAbbriv)
 		self.lastSpeechThread.start()
 
 	@script(

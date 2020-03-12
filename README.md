@@ -11,17 +11,21 @@ A lot of the work I do involves working across timezones, and eventually I got t
 For these reasons, I've created this add-on for NVDA. The add-on lets you hear times in selected timezones through the use of the "timezone ring."
 
 ## Usage
-You can either compile the Master branch yourself, or grab the nvda-addon file from the releases page. The add-on supports both the legacy and the Python 3 version of NVDA.
+You can either download and unzip the Master branch yourself, or grab the [latest NVDA add-on file from the releases page](releases/latest). The add-on supports both the legacy and the Python 3 version of NVDA.
 
 Once the add-on is installed, press NVDA+N to bring up NVDA's context menu. Arrow down to "Preferences" and then up to "Time Zoner."
 
-Press ENTER on "Set Timezones."
+Press ENTER on "Configure Timezone Ring."
 
 You will be presented with a dialog to set the timezones for which you want the time and date announced.
 
-Select and deselect items in the timezone list to add them to your timezone ring. You can also reorder the timezones in the ring by using the "Move Up" and "Move Down" buttons.
+Select items in the timezone list to add them to your timezone ring. Deselect (or press the "Remove" button)  to remove them from the ring.
+
+You can also reorder the timezones in the ring by using the "Move Up" and "Move Down" buttons.
 
 Use the "Filter" box to search for specific timezones.
+
+Check the "Announce abbreviated timezones" box to hear abbreviated timezone names such as IST or GMT. Uncheck the box to hear the full timezone names such as Asia/Kolkata or Europe/London.
 
 When you are finished configuring the timezones, press the "Save" button.
 

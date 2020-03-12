@@ -11,7 +11,7 @@ A lot of the work I do involves working across timezones, and eventually I got t
 For these reasons, I've created this add-on for NVDA. The add-on lets you hear times in selected timezones through the use of the "timezone ring."
 
 ## Usage
-You can either download and unzip the Master branch yourself, or grab the [latest NVDA add-on file from the releases page](releases/latest). The add-on supports both the legacy and the Python 3 version of NVDA.
+You can either download and unzip the Master branch yourself, or grab the [latest NVDA add-on file from the releases page](../../releases/latest). The add-on supports both the legacy and the Python 3 version of NVDA.
 
 Once the add-on is installed, press NVDA+N to bring up NVDA's context menu. Arrow down to "Preferences" and then up to "Time Zoner."
 

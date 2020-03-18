@@ -1,0 +1,120 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the 'timeZone' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 'timeZone' '1.5'\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
+"POT-Creation-Date: 2020-03-14 20:16+0000\n"
+"PO-Revision-Date: 2020-03-14 20:26+0000\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en\n"
+
+#. For translators: message to inform there are no timezones defined
+#: addon\globalPlugins\timezone.py:53
+msgid "No timezones set"
+msgstr ""
+
+#. For translators: message to announce the time, date and timezone
+#: addon\globalPlugins\timezone.py:65
+#, python-format
+msgid "%s, %s (%s)"
+msgstr ""
+
+#: addon\globalPlugins\timezone.py:72
+msgid "Configure Timezone Ring..."
+msgstr ""
+
+#: addon\globalPlugins\timezone.py:75
+msgid "Filter:"
+msgstr ""
+
+#. For translators: Name of time zones list
+#: addon\globalPlugins\timezone.py:81
+msgid "Timezones (select to add, deselect to remove)"
+msgstr ""
+
+#. For translators: Name of time zones ring list
+#: addon\globalPlugins\timezone.py:84
+msgid "Timezone Ring"
+msgstr ""
+
+#. For translators: Name of the button to remove a time zone
+#: addon\globalPlugins\timezone.py:92
+msgid "Remove"
+msgstr ""
+
+#. For translators: Name of the button to move up a time zone
+#: addon\globalPlugins\timezone.py:95
+msgid "Move Up"
+msgstr ""
+
+#. For translators: Name of the button to move down a time zone
+#: addon\globalPlugins\timezone.py:98
+msgid "Move Down"
+msgstr ""
+
+#. For translators: The label for the checkbox to announce timezones in abbreviated form.
+#: addon\globalPlugins\timezone.py:101
+msgid "Announce abbreviated timezones"
+msgstr ""
+
+#. For translators: Name of the button to save the selections of time zones
+#: addon\globalPlugins\timezone.py:107
+msgid "Save"
+msgstr ""
+
+#. For translators: Name of the button to exit without saving the selections of time zones
+#: addon\globalPlugins\timezone.py:110
+msgid "Cancel"
+msgstr ""
+
+#. For translators: Message to announce the number of matches found
+#: addon\globalPlugins\timezone.py:173
+#, python-format
+msgid "%d results now showing"
+msgstr ""
+
+#. For translators: Name of the menu of the add-on
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on to be shown on installation and add-on information.
+#: addon\globalPlugins\timezone.py:224 buildVars.py:17
+msgid "Time Zoner"
+msgstr ""
+
+#. For translators: Name of the sub-menu of the add-on
+#: addon\globalPlugins\timezone.py:226
+msgid "Configure Timezone Ring"
+msgstr ""
+
+#: addon\globalPlugins\timezone.py:226
+msgid "Allows the configuration of timezones"
+msgstr ""
+
+#: addon\globalPlugins\timezone.py:232
+msgid ""
+"Speaks the time and date in the specified timezone in the configured "
+"timezone ring according to the amount of times this key is pressed in rapid "
+"succession."
+msgstr ""
+
+#: addon\globalPlugins\timezone.py:245
+msgid "Brings up the timezone selection dialog."
+msgstr ""
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:20
+msgid ""
+"Announces the time and date in selected timezones. Use the Preferences menu "
+"to set timezones you want to hear. After you do this, press NVDA+ALT+T to "
+"cycle through your timezone ring and hear times in your selected timezones."
+msgstr ""

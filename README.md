@@ -32,3 +32,24 @@ When you are finished configuring the timezones, press the "Save" button.
 From here on, you can press NVDA+ALT+T to announce times and dates in your timezone ring.
 
 When you first install the add-on, NVDA will default to your local timezone if it can get it.
+
+## Change Log
+
+### Version 1.02, released on 03/18/2020
+- When installing a new version of this add-on, the settings from a previous installation are no longer lost.
+- Other changes to conform to NVDA add-on standard compliance.
+
+### Version 1.01, released on 03/12/2020
+- The time and date are announced in the user's locale, meaning that 24-hour time is honored if set.
+- NVDA will announce either the abbreviated or full timezone depending on the user's setting in the Timezone Ring dialog. For example, it will either say Europe/London, or it will say GMT or BST. This setting is controlled by checking or unchecking the "Announce abbreviated timezones" checkbox.
+- Add-on includes translator comments (@ruifontes.)
+- Add-on now includes header comments (@ruifontes.)
+- The Escape key closes the Timezone Ring Dialog (@ruifontes.)
+- The menu item to open the Timezone Ring dialog is now named appropriately (@ruifontes.)
+- NVDA now defaults to the local timezone on installation of this add-on, if the local timezone is available.
+- Support for multiple timezones through the use of a timezone ring.
+- This add-on now uses the key NVDA+ALT+T to prevent conflict with the Clock add-on.
+- The timezone selector dialog now has a filter box. NVDA will announce the number of results as the user starts typing into the filter field.
+- Python 2 support
+- The date and time is now announced in a separate thread to prevent hanging the NVDA thread in case retrieval takes a little while.
+- The timezone selector dialog now has a cancel button and no longer prevents NVDA from shutting down.

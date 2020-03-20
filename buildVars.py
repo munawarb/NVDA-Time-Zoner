@@ -19,9 +19,9 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description" : _("""Announces the time and date in selected timezones. Use the Preferences menu to set timezones you want to hear. After you do this, press NVDA+ALT+T to cycle through your timezone ring and hear times in your selected timezones."""),
 	# version
-	"addon_version" : "1.02",
+	"addon_version" : "1.03",
 	# Author(s)
-	"addon_author" : u"Munawar",
+	"addon_author" : u"Munawar Bijani",
 	# URL for the add-on documentation support
 	"addon_url" : "https://github.com/munawarb/NVDA-Time-Zoner",
 	# Documentation file name

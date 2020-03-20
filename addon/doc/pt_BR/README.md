@@ -34,30 +34,19 @@ Quando o extra é instalado, é definido como padrão o seu fuso horário, se po
 
 ## Histórico de versões
 
-### Versão 1.5, lançada em 12/03/2020
+### Versão 1.01, lançada em 12/03/2020
 * A hora e data passam a ser anunciadas na configuração regional do utilizador, sendo assim respeitada a configuração de 12 ou 24 horas.
 * O NVDA anunciará o fuso horário abreviadamente, ou não, dependendo da marcação da respectiva caixa de verificação na janela "Configurar o anel de fusos horários". Por exemplo, anunciará "Europe/London," ou "GMT" ou BST.
 * O extra passa a incluir comentários para os tradutores. (@ruifontes.)
 * O extra já inclui no código os cabeçalhos. (@ruifontes.)
 * A tecla "Escape" fecha a janela "Configurar o anel de fusos horários". (@ruifontes.)
 * O item de menu para abrir a janela "Configurar o anel de fusos horários" é nomeado apropriadamente. (@ruifontes.)
-
-### Versão 1.4, lançada em 09/03/2020:
 * O extra passa a assumir como padrão o fuso horário local, se disponível.
 * Suporte para múltiplos fusos horários através do "Anel de fusos horários".
 * O comando passa a ser "NVDA+Alt+t", para não haver conflitos com o extra "Relógio".
-
-### Versão 1.3, lançada em 08/03/2020:
 * O diálogo "Selector de fuso horário" passa a ter um campo para filtrar os resultados, e o NVDA vai anunciando o número de resultados enquanto se escreve.
-
-### Versão 1.2, lançada em 08/03/2020
 * Suporte ao Python 3
-
-### Versão 1.1, Lançada em 08/03/2020
 * O anúncio da hora e data é agora feito numa sequência separada para prevenir problemas no NVDA, caso o processamento demore muito tempo. .
 * O diálogo "Selector de fuso horário" passa a ter um botão "Cancelar" e já não impede o NVDA de fechar.
 
-### Versão 1.0, Lançada em 07/03/2020
-Versão inicial, ainda experimental.
-
-[1] https://github.com/munawarb/NVDA-Time-Zoner/releases/download/v1.5/TimeZoner.nvda-addon
+[1]: https://github.com/munawarb/NVDA-Time-Zoner/releases/latest

@@ -20,7 +20,9 @@ from datetime import datetime
 pythonVersion = int(sys.version[:1])
 # Here, we use the Python2 or 3 versions of pytz
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules", "2" if pythonVersion == 2 else "3"))
+import pytz
 from pytz import timezone, common_timezones
+from pytz.exceptions import UnknownTimeZoneError
 from tzlocal import get_localzone
 del sys.path[0]
 import gui
@@ -29,6 +31,7 @@ from gui import SettingsDialog, guiHelper
 import json
 from time import sleep
 import addonHandler
+import globalVars
 
 addonHandler.initTranslation() 
 
@@ -201,7 +204,13 @@ class TimezoneSelectorDialog(wx.Dialog):
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
-		self.destTimezones = [get_localzone().zone]
+		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
+			return
+		try:
+			self.destTimezones = [get_localzone().zone]
+		except UnknownTimeZoneError:
+			# We couldn't find the user's default timezone.
+			self.destTimezones = []
 		self.announceAbbriv = False
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.

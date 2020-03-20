@@ -1,6 +1,11 @@
 # NVDA-Time-Zoner
 An add-on for NVDA to announce the time in selected timezones.
 
+## Information
+* Author: Munawar Bijani
+* Download [stable version][1]
+* Compatibility: NVDA 2019.2.1 and later
+
 ## Introduction
 For a very long time now, Windows has had the ability to show multiple clocks from different timezones. Users can customize the clocks and they become instantly visible.
 
@@ -11,7 +16,7 @@ A lot of the work I do involves working across timezones, and eventually I got t
 For these reasons, I've created this add-on for NVDA. The add-on lets you hear times in selected timezones through the use of the "timezone ring."
 
 ## Usage
-You can either download and unzip the Master branch yourself, or grab the [latest NVDA add-on file from the releases page](../../releases/latest). The add-on supports both the legacy and the Python 3 version of NVDA.
+You can [download the latest release here][1]. The add-on supports both the legacy and the Python 3 version of NVDA.
 
 Once the add-on is installed, press NVDA+N to bring up NVDA's context menu. Arrow down to "Preferences" and then up to "Time Zoner."
 
@@ -35,6 +40,10 @@ When you first install the add-on, NVDA will default to your local timezone if i
 
 ## Change Log
 
+### Version 1.03, released on 03/20/2020
+- The add-on no longer crashes if the default timezone can't be set.
+- Fixed an issue with relative links in the documentation.
+
 ### Version 1.02, released on 03/18/2020
 - When installing a new version of this add-on, the settings from a previous installation are no longer lost.
 - Other changes to conform to NVDA add-on standard compliance.
@@ -53,3 +62,5 @@ When you first install the add-on, NVDA will default to your local timezone if i
 - Python 2 support
 - The date and time is now announced in a separate thread to prevent hanging the NVDA thread in case retrieval takes a little while.
 - The timezone selector dialog now has a cancel button and no longer prevents NVDA from shutting down.
+
+[1]: https://github.com/munawarb/NVDA-Time-Zoner/releases/latest

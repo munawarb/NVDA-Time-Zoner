@@ -1,4 +1,4 @@
-# NVDA-Time-Zoner
+# Time Zoner
 An add-on for NVDA to announce the time in selected timezones.
 
 ## Information

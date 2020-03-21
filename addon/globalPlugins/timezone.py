@@ -222,8 +222,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.announceAbbriv = data.get("announceAbbriv", self.announceAbbriv)
 		else:
 			# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
+			# If we couldn't determine the user's default timezone, the destTimezones array will be empty.
 			# This is to rescue the script from systems that might not have a recognizable timezone.
-			if self.destTimezones[0] not in common_timezones:
+			if len(self.destTimezones) > 0 and self.destTimezones[0] not in common_timezones:
 				self.destTimezones = []
 
 		# Construction of the add-on menu

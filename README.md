@@ -40,7 +40,7 @@ When you first install the add-on, NVDA will default to your local timezone if i
 
 ## Change Log
 
-### Version 1.03, released on 03/20/2020
+### Version 1.03, released on 03/21/2020
 - The add-on no longer crashes if the default timezone can't be set.
 - Fixed an issue with relative links in the documentation.
 

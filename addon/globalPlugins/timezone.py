@@ -72,7 +72,7 @@ class SpeakThread(threading.Thread):
 
 class TimezoneSelectorDialog(wx.Dialog):
 	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring..."))
+		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring"))
 		self.gPlugin = globalPluginClass
 		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
 		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)

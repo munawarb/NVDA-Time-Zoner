@@ -21,7 +21,7 @@ pythonVersion = int(sys.version[:1])
 # Here, we use the Python2 or 3 versions of pytz
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules", "2" if pythonVersion == 2 else "3"))
 import pytz
-from pytz import timezone, common_timezones
+from pytz import timezone, common_timezones, country_names, country_timezones
 from pytz.exceptions import UnknownTimeZoneError
 from tzlocal import get_localzone
 del sys.path[0]
@@ -34,20 +34,27 @@ import addonHandler
 import globalVars
 
 addonHandler.initTranslation() 
+timezoneToCountry = {}
+for countryCode in country_timezones:
+	timezonesInCountry = country_timezones[countryCode]
+	for tz in timezonesInCountry:
+		timezoneToCountry[tz] = country_names[countryCode]
 
 class SpeakThread(threading.Thread):
-	def __init__(self, repeatCount, destTimezones, announceAbbriv):
+	def __init__(self, ptr, repeatCount, destTimezones, announceAbbriv, formatString):
 		threading.Thread.__init__(self)
+		self.ptr = ptr
 		self.repeatCount = repeatCount
 		self.interrupted = False
 		self.destTimezones = destTimezones
+		self.formatString = formatString
 		self.announceAbbriv = announceAbbriv
 
 	def getTimezone(self):
 		l = len(self.destTimezones)
 		if l == 0:
 			return ""
-		return self.destTimezones[self.repeatCount%l]
+		return self.destTimezones[(self.repeatCount + self.ptr) % l]
 
 	def sayInTimezone(self):
 		selectedTz = self.getTimezone()
@@ -55,8 +62,8 @@ class SpeakThread(threading.Thread):
 			# For translators: message to inform there are no timezones defined
 			core.callLater(0, ui.message, _("No timezones set"))
 			return
-		now = datetime.now(timezone("UTC"))
-		destTimezone = now.astimezone(timezone(selectedTz))
+		now = datetime.now(pytz.timezone("UTC"))
+		destTimezone = now.astimezone(pytz.timezone(selectedTz))
 		# By the time the code gets down here, we could have signaled this thread to terminate.
 		# This will be the case if retrieval is taking a long time and we've pressed the key multiple times to get successive information in our timezone ring, in which case this thread is marked dirty.
 		if self.interrupted:
@@ -64,8 +71,12 @@ class SpeakThread(threading.Thread):
 		# We'll use the winKernel here to announce the time and date in the user's locale.
 		theTime =winKernel.GetTimeFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.TIME_NOSECONDS, destTimezone, None)
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
+		separator = selectedTz.index("/")
+		country = timezoneToCountry[selectedTz]
+		city = selectedTz[separator+1:]
+		timezone = destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz
 		# For translators: message to announce the time, date and timezone
-		core.callLater(0, ui.message, _("%s, %s (%s)" % (theTime, theDate, destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz)))
+		core.callLater(0, ui.message, _(self.formatString.format(time=theTime, date=theDate, country=country, city=city, timezone=timezone)))
 
 	def run(self):
 		self.sayInTimezone()
@@ -104,6 +115,8 @@ class TimezoneSelectorDialog(wx.Dialog):
 		self.announceAbbriv = sHelper.addItem(wx.CheckBox(self, label=_("Announce abbreviated timezones")))
 		# Check the box by default if we're announcing abbreviations.
 		self.announceAbbriv.SetValue(self.gPlugin.announceAbbriv)
+		# For translators: The label for the format string box.
+		self.formatString = sHelper.addLabeledControl(_("Format String:"), wx.TextCtrl, value=self.gPlugin.formatString)
 		saveAndCancelHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
 		sHelper.addItem(saveAndCancelHelper)
 		# For translators: Name of the button to save the selections of time zones
@@ -191,17 +204,17 @@ class TimezoneSelectorDialog(wx.Dialog):
 		t.start()
 
 	def onSetTZClick(self, event):
-		zones = self.selectedTimezonesList.GetItems()
-		self.gPlugin.destTimezones = zones
+		self.gPlugin.destTimezones = self.selectedTimezonesList.GetItems()
 		self.gPlugin.announceAbbriv = self.announceAbbriv.GetValue()
-		with open(self.gPlugin.configFile, "w") as fout:
-			fout.write(json.dumps({"announceAbbriv": self.gPlugin.announceAbbriv, "timezones": zones}))
+		self.gPlugin.formatString = self.formatString.GetValue()
+		self.gPlugin.save()
 		self.Destroy()
 
 	def onCancelClick(self, event):
 		self.Destroy()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
+	scriptCategory = "Time Zoner"
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
@@ -212,6 +225,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			# We couldn't find the user's default timezone.
 			self.destTimezones = []
 		self.announceAbbriv = False
+		self.ptr = 0
+		self.formatString = "{time} {date} ({timezone})"
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.
 		self.configFile = os.path.join(scriptPath[:scriptPath.rindex("\\")], "timezone.json")
@@ -220,6 +235,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				data = json.load(fin)
 				self.destTimezones = data.get("timezones", self.destTimezones)
 				self.announceAbbriv = data.get("announceAbbriv", self.announceAbbriv)
+				self.ptr = data.get("ptr", self.ptr)
+				self.formatString = data.get("formatString", self.formatString)
 		else:
 			# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
 			# If we couldn't determine the user's default timezone, the destTimezones array will be empty.
@@ -235,21 +252,54 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		# For translators: Name of the sub-menu of the add-on
 		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Configure Timezone Ring..."), _("Allows the configuration of timezones"))
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
-
 		self.lastSpeechThread = None
+
+	def save(self):
+		with open(self.configFile, "w") as fout:
+			fout.write(json.dumps({"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "formatString": self.formatString}))
+
+	def stopLastSpeakThread(self):
+		if self.lastSpeechThread is not None:
+			self.lastSpeechThread.interrupted = True
 
 	@script(
 		description = _("Speaks the time and date in the specified timezone in the configured timezone ring according to the amount of times this key is pressed in rapid succession."),
-		category=globalCommands.SCRCAT_SYSTEM, # Same category as the NVDA speakDateTime script
 		gestures=["kb:NVDA+ALT+T"]
 	)
 	def script_sayTimezoneTime(self, gesture):
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
-		if self.lastSpeechThread is not None:
-			self.lastSpeechThread.interrupted = True
-		self.lastSpeechThread = SpeakThread(getLastScriptRepeatCount(), self.destTimezones, self.announceAbbriv)
+		self.stopLastSpeakThread()
+		self.lastSpeechThread = SpeakThread(self.ptr, getLastScriptRepeatCount(), self.destTimezones, self.announceAbbriv, self.formatString)
 		self.lastSpeechThread.start()
+
+	@script(
+		description = _("Moves to and speaks the previous timezone in the timezone ring."),
+		gestures=["kb:NVDA+ALT+UPARROW"]
+	)
+	def script_prevTimezone(self, gesture):
+		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
+		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
+		self.stopLastSpeakThread()
+		self.ptr -= 1
+		if self.ptr < 0:
+			self.ptr = len(self.destTimezones) - 1
+		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
+		self.lastSpeechThread.start()
+		self.save()
+
+	@script(
+		description = _("Moves to and speaks the next timezone in the timezone ring."),
+		gestures=["kb:NVDA+ALT+DOWNARROW"]
+	)
+	def script_nextTimezone(self, gesture):
+		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
+		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
+		self.stopLastSpeakThread()
+		self.ptr = (self.ptr+1) % len(self.destTimezones)
+		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
+		self.lastSpeechThread.start()
+		self.save()
 
 	@script(
 		description=_("Brings up the timezone selection dialog."),

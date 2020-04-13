@@ -40,6 +40,24 @@ for countryCode in country_timezones:
 	for tz in timezonesInCountry:
 		timezoneToCountry[tz] = country_names[countryCode]
 
+def getFormattedTimeMessage(time=True, date=True, country=False, continent=False, city=False, timezone="end"):
+	components = []
+	if timezone == "beginning":
+		components.append("{timezone}")
+	if country:
+		components.append("{country}" + ":" if continent or city else "")
+	if continent:
+		components.append("{continent}" + "/" if city else "")
+	if city:
+		components.append("{city} ")
+	if time:
+		components.append("{time}" + "," if date else "")
+	if date:
+		components.append("{date}")
+	if timezone == "end":
+		components.append("({timezone})")
+	return " ".join(components)
+
 class SpeakThread(threading.Thread):
 	def __init__(self, ptr, repeatCount, destTimezones, announceAbbriv, formatString):
 		threading.Thread.__init__(self)
@@ -73,10 +91,11 @@ class SpeakThread(threading.Thread):
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
 		separator = selectedTz.index("/")
 		country = timezoneToCountry[selectedTz]
+		continent = selectedTz[separator:]
 		city = selectedTz[separator+1:]
 		timezone = destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz
 		# For translators: message to announce the time, date and timezone
-		core.callLater(0, ui.message, _(self.formatString.format(time=theTime, date=theDate, country=country, city=city, timezone=timezone)))
+		core.callLater(0, ui.message, _(self.formatString.format(time=theTime, date=theDate, country=country, continent=continent, city=city, timezone=timezone)))
 
 	def run(self):
 		self.sayInTimezone()
@@ -214,7 +233,8 @@ class TimezoneSelectorDialog(wx.Dialog):
 		self.Destroy()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
-	scriptCategory = "Time Zoner"
+	# For translators: The name of the category under which to display hotkeys for this add-on in Input Gestures.
+	scriptCategory = _("Time Zoner")
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
@@ -226,7 +246,13 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.destTimezones = []
 		self.announceAbbriv = False
 		self.ptr = 0
-		self.formatString = "{time} {date} ({timezone})"
+		self.time=True
+		self.date=True
+		self.country=False
+		self.continent=False
+		self.city=False
+		self.timezone="end"
+		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, timezone=self.timezone) # Default configuration of time, date, timezone
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.
 		self.configFile = os.path.join(scriptPath[:scriptPath.rindex("\\")], "timezone.json")
@@ -236,7 +262,13 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.destTimezones = data.get("timezones", self.destTimezones)
 				self.announceAbbriv = data.get("announceAbbriv", self.announceAbbriv)
 				self.ptr = data.get("ptr", self.ptr)
-				self.formatString = data.get("formatString", self.formatString)
+				self.time = data.get("time", self.time)
+				self.date = data.get("date", self.date)
+				self.country = data.get("country", self.country)
+				self.continent = data.get("continent", self.continent)
+				self.city = data.get("city", self.city)
+				self.timezone = data.get("timezone", self.timezone)
+				self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, country=self.country, continent=self.continent, city=self.city, timezone=self.timezone)
 		else:
 			# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
 			# If we couldn't determine the user's default timezone, the destTimezones array will be empty.

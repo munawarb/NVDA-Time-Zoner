@@ -27,12 +27,11 @@ from tzlocal import get_localzone
 del sys.path[0]
 import gui
 import wx
-from gui import SettingsDialog, guiHelper
+from gui import settingsDialogs, guiHelper, NVDASettingsDialog
 import json
 from time import sleep
 import addonHandler
 import globalVars
-
 addonHandler.initTranslation() 
 timezoneToCountry = {}
 for countryCode in country_timezones:
@@ -57,6 +56,7 @@ def getFormattedTimeMessage(time=True, date=True, country=False, continent=False
 	if timezone == "end":
 		components.append("({timezone})")
 	return " ".join(components)
+globalPluginClass = None
 
 class SpeakThread(threading.Thread):
 	def __init__(self, ptr, repeatCount, destTimezones, announceAbbriv, formatString):
@@ -100,11 +100,12 @@ class SpeakThread(threading.Thread):
 	def run(self):
 		self.sayInTimezone()
 
-class TimezoneSelectorDialog(wx.Dialog):
-	def __init__(self, parent, globalPluginClass):
-		super(wx.Dialog, self).__init__(parent, title = _("Configure Timezone Ring"))
+class TimezoneSelectorDialog(settingsDialogs.SettingsPanel):
+	# For translators: Name of the Time Zoner settings category
+	title = _("Time Zoner")
+	def makeSettings(self, mainSizer):
 		self.gPlugin = globalPluginClass
-		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
+		sHelper = guiHelper.BoxSizerHelper(self, sizer=mainSizer)
 		self.filterElement = sHelper.addLabeledControl(_("Filter:"), wx.TextCtrl)
 		# The label and text box will be next to each other.
 		# Below this we will find the label and listbox.
@@ -134,17 +135,12 @@ class TimezoneSelectorDialog(wx.Dialog):
 		self.announceAbbriv = sHelper.addItem(wx.CheckBox(self, label=_("Announce abbreviated timezones")))
 		# Check the box by default if we're announcing abbreviations.
 		self.announceAbbriv.SetValue(self.gPlugin.announceAbbriv)
-		# For translators: The label for the format string box.
-		self.formatString = sHelper.addLabeledControl(_("Format String:"), wx.TextCtrl, value=self.gPlugin.formatString)
-		saveAndCancelHelper = guiHelper.BoxSizerHelper(self, orientation=wx.HORIZONTAL)
-		sHelper.addItem(saveAndCancelHelper)
-		# For translators: Name of the button to save the selections of time zones
-		setButton = saveAndCancelHelper.addItem( wx.Button(self, label=_("Save")))
-		setButton.Bind(wx.EVT_BUTTON, self.onSetTZClick)
-		# For translators: Name of the button to exit without saving the selections of time zones
-		cancelButton = saveAndCancelHelper.addDialogDismissButtons( wx.Button(self, id = wx.ID_CLOSE, label=_("Cancel")))
-		cancelButton.Bind(wx.EVT_BUTTON, self.onCancelClick)
-		self.SetEscapeId(wx.ID_CLOSE)
+		formattersBoxes = sHelper.addItem(wx.StaticBoxSizer(wx.VERTICAL, self, _("Components")))
+		self.continentChk = formattersBoxes.Add(wx.CheckBox(formattersBoxes.GetStaticBox(), label=_("Continent")))
+		self.countryChk = formattersBoxes.Add(wx.CheckBox(formattersBoxes.GetStaticBox(), label=_("Country")))
+		self.cityChk = formattersBoxes.Add(wx.CheckBox(formattersBoxes.GetStaticBox(), label=_("City")))
+		self.timeChk = formattersBoxes.Add(wx.CheckBox(formattersBoxes.GetStaticBox(), label=_("Time")))
+		self.dateChk = formattersBoxes.Add(wx.CheckBox(formattersBoxes.GetStaticBox(), label=_("Date")))
 
 	def isMovable(self):
 		index = self.selectedTimezonesList.GetSelection()
@@ -222,7 +218,7 @@ class TimezoneSelectorDialog(wx.Dialog):
 		t = threading.Thread(target=self.announceFilterAfterDelay, args=[len(filtered)])
 		t.start()
 
-	def onSetTZClick(self, event):
+	def onSave(self):
 		self.gPlugin.destTimezones = self.selectedTimezonesList.GetItems()
 		self.gPlugin.announceAbbriv = self.announceAbbriv.GetValue()
 		self.gPlugin.formatString = self.formatString.GetValue()
@@ -236,9 +232,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	# For translators: The name of the category under which to display hotkeys for this add-on in Input Gestures.
 	scriptCategory = _("Time Zoner")
 	def __init__(self):
+		global globalPluginClass
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
 			return
+		globalPluginClass = self
+		NVDASettingsDialog.categoryClasses.append(TimezoneSelectorDialog)
 		try:
 			self.destTimezones = [get_localzone().zone]
 		except UnknownTimeZoneError:

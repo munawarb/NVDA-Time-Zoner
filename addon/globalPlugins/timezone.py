@@ -39,9 +39,9 @@ for countryCode in country_timezones:
 	for tz in timezonesInCountry:
 		timezoneToCountry[tz] = country_names[countryCode]
 
-def getFormattedTimeMessage(time=True, date=True, country=False, continent=False, city=False, timezone="end"):
+def getFormattedTimeMessage(time=True, date=True, country=False, continent=False, city=False, timezone=1):
 	components = []
-	if timezone == "beginning":
+	if timezone == 0:
 		components.append("{timezone}")
 	if country:
 		components.append("{country}" + ":" if continent or city else "")
@@ -53,7 +53,7 @@ def getFormattedTimeMessage(time=True, date=True, country=False, continent=False
 		components.append("{time}" + "," if date else "")
 	if date:
 		components.append("{date}")
-	if timezone == "end":
+	if timezone == 1:
 		components.append("({timezone})")
 	return " ".join(components)
 globalPluginClass = None
@@ -91,7 +91,7 @@ class SpeakThread(threading.Thread):
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
 		separator = selectedTz.index("/")
 		country = timezoneToCountry[selectedTz]
-		continent = selectedTz[separator:]
+		continent = selectedTz[:separator]
 		city = selectedTz[separator+1:]
 		timezone = destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz
 		# For translators: message to announce the time, date and timezone
@@ -153,7 +153,7 @@ class TimezoneSelectorDialog(settingsDialogs.SettingsPanel):
 		self.dateChk.SetValue(self.gPlugin.date)
 		self.timezonePositionRadio = wx.RadioBox(formattersBoxes.GetStaticBox(), label=_("Announce Timezone At:"), choices=["Beginning", "End"])
 		formattersBoxes.Add(self.timezonePositionRadio)
-		self.timezonePositionRadio.SetSelection(0 if self.gPlugin.timezone == "beginning" else 1)
+		self.timezonePositionRadio.SetSelection(self.gPlugin.timezone)
 
 	def isMovable(self):
 		index = self.selectedTimezonesList.GetSelection()
@@ -234,12 +234,15 @@ class TimezoneSelectorDialog(settingsDialogs.SettingsPanel):
 	def onSave(self):
 		self.gPlugin.destTimezones = self.selectedTimezonesList.GetItems()
 		self.gPlugin.announceAbbriv = self.announceAbbriv.GetValue()
-		self.gPlugin.formatString = self.formatString.GetValue()
+		self.gPlugin.continent = self.continentChk.GetValue()
+		self.gPlugin.country = self.countryChk.GetValue()
+		self.gPlugin.city = self.cityChk.GetValue()
+		self.gPlugin.time = self.timeChk.GetValue()
+		self.gPlugin.date = self.dateChk.GetValue()
+		self.gPlugin.timezone = self.timezonePositionRadio.GetSelection()
+		self.gPlugin.ptr = 0
+		self.gPlugin.setFormatString()
 		self.gPlugin.save()
-		self.Destroy()
-
-	def onCancelClick(self, event):
-		self.Destroy()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	# For translators: The name of the category under which to display hotkeys for this add-on in Input Gestures.
@@ -263,7 +266,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.country=False
 		self.continent=False
 		self.city=False
-		self.timezone="end"
+		self.timezone=1
 		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, timezone=self.timezone) # Default configuration of time, date, timezone
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.
@@ -298,9 +301,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
 		self.lastSpeechThread = None
 
+	def setFormatString(self):
+		self.formatString = getFormattedTimeMessage(continent=self.continent, country=self.country, city=self.city, time=self.time, date=self.date, timezone=self.timezone)
+
 	def save(self):
 		with open(self.configFile, "w") as fout:
-			fout.write(json.dumps({"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "formatString": self.formatString}))
+			fout.write(json.dumps({"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}))
 
 	def stopLastSpeakThread(self):
 		if self.lastSpeechThread is not None:

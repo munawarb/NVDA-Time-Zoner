@@ -44,13 +44,13 @@ def getFormattedTimeMessage(time=True, date=True, country=False, continent=False
 	if timezone == 0:
 		components.append("{timezone}")
 	if country:
-		components.append("{country}" + ":" if continent or city else "")
+		components.append("{country}" + (":" if continent or city else ""))
 	if continent:
-		components.append("{continent}" + "/" if city else "")
+		components.append("{continent}" + ("/" if city else ""))
 	if city:
 		components.append("{city} ")
 	if time:
-		components.append("{time}" + "," if date else "")
+		components.append("{time}" + ("," if date else ""))
 	if date:
 		components.append("{date}")
 	if timezone == 1:

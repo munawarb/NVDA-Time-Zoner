@@ -18,11 +18,7 @@ For these reasons, I've created this add-on for NVDA. The add-on lets you hear t
 ## Usage
 You can [download the latest release here][1]. The add-on supports both the legacy and the Python 3 version of NVDA.
 
-Once the add-on is installed, press NVDA+N to bring up NVDA's context menu. Arrow down to "Preferences" and then up to "Time Zoner."
-
-Press ENTER on "Configure Timezone Ring."
-
-You will be presented with a dialog to set the timezones for which you want the time and date announced.
+Once the add-on is installed, you can configure it by activating NVDA's settings dialog and going down to the "Time Zoner" category.
 
 Select items in the timezone list to add them to your timezone ring. Deselect (or press the "Remove" button)  to remove them from the ring.
 
@@ -32,9 +28,23 @@ Use the "Filter" box to search for specific timezones.
 
 Check the "Announce abbreviated timezones" box to hear abbreviated timezone names such as IST or GMT. Uncheck the box to hear the full timezone names such as Asia/Kolkata or Europe/London.
 
-When you are finished configuring the timezones, press the "Save" button.
+You can configure what information you hear when querying the time in a timezone by checking/unchecking the boxes in the "Components" group:
 
-From here on, you can press NVDA+ALT+T to announce times and dates in your timezone ring.
+* Continent: Announce the continent for the current timezone.
+* Country: Announce the country for the current timezone.
+* City: Announce the city for the current timezone.
+* Time: Announce the time for the current timezone.
+* Date: Announce the date for the current timezone.
+* Announce timezone at (Beginning or End): Say the timezone first, or as the last thing you hear. For example, if you wish to hear "BST 9:42 AM", select the "Beginning" radio button. If you wish to hear 9:42 AM (BST)", select the "End" radio button.
+
+When you are finished configuring your preferences, press the "OK" button.
+
+From here on, you can press the following keys to announce times in your timezone ring:
+
+* NVDA+ALT+UP ARROW: Announce the previous timezone.
+* NVDA+ALT+DOWN ARROW: Announce the next timezone.
+* NVDA+ALT+T: Announce the last timezone you were pointing at in your timezone ring. Pressing this key multiple times in rapid succession will move forward through your timezone ring but will not change the timezone at which you are pointing.
+* To configure these keys, use the "Time Zoner" category in the "Input Gestures" dialog.
 
 When you first install the add-on, NVDA will default to your local timezone if it can get it.
 

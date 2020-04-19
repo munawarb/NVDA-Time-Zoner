@@ -7,6 +7,7 @@
 
 import threading
 import os.path
+from os import remove
 import sys
 import globalPluginHandler
 from scriptHandler import getLastScriptRepeatCount
@@ -32,12 +33,22 @@ import json
 from time import sleep
 import addonHandler
 import globalVars
+from config import conf
 addonHandler.initTranslation() 
 timezoneToCountry = {}
-for countryCode in country_timezones:
-	timezonesInCountry = country_timezones[countryCode]
-	for tz in timezonesInCountry:
-		timezoneToCountry[tz] = country_names[countryCode]
+configRoot = "TimeZoner"
+# The schema for the NVDA configuration
+conf.spec[configRoot] = {
+	"announceAbbriv": "boolean(default=False)",
+	"ptr": "integer(default=0)",
+	"time": "boolean(default=True)",
+	"date": "boolean(default=True)",
+	"continent": "boolean(default=False)",
+	"country": "boolean(default=False)",
+	"city": "boolean(default=False)",
+	"timezone": "integer(default=1)",
+	"timezones": "string_list()"
+}
 
 def getFormattedTimeMessage(time=True, date=True, country=False, continent=False, city=False, timezone=1):
 	components = []
@@ -90,7 +101,7 @@ class SpeakThread(threading.Thread):
 		theTime =winKernel.GetTimeFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.TIME_NOSECONDS, destTimezone, None)
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
 		separator = selectedTz.index("/")
-		country = timezoneToCountry[selectedTz]
+		country = timezoneToCountry.get(selectedTz, "Unknown country")
 		continent = selectedTz[:separator]
 		city = selectedTz[separator+1:]
 		timezone = destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz
@@ -242,6 +253,7 @@ class TimezoneSelectorDialog(settingsDialogs.SettingsPanel):
 		self.gPlugin.timezone = self.timezonePositionRadio.GetSelection()
 		self.gPlugin.ptr = 0
 		self.gPlugin.setFormatString()
+		self.gPlugin.mapTZToCountry()
 		self.gPlugin.save()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -268,45 +280,54 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.city=False
 		self.timezone=1
 		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, timezone=self.timezone) # Default configuration of time, date, timezone
+		# For versions of add-ons upgrading to the NVDA  config version, we'll import the JSON file and then delete it.
+		# The JSON file was used to store config options before the rewrite to use the NVDA config API and is no longer needed. But we don't want the user to lose their settings because of the upgrade.
 		scriptPath = os.path.realpath(__file__)
 		# Place the config file in the aplication that the add-on is in.
-		self.configFile = os.path.join(scriptPath[:scriptPath.rindex("\\")], "timezone.json")
-		if os.path.isfile(self.configFile):
-			with open(self.configFile) as fin:
+		configFile = os.path.join(scriptPath[:scriptPath.rindex("\\")], "timezone.json")
+		if os.path.isfile(configFile):
+			with open(configFile) as fin:
 				data = json.load(fin)
-				self.destTimezones = data.get("timezones", self.destTimezones)
-				self.announceAbbriv = data.get("announceAbbriv", self.announceAbbriv)
-				self.ptr = data.get("ptr", self.ptr)
-				self.time = data.get("time", self.time)
-				self.date = data.get("date", self.date)
-				self.country = data.get("country", self.country)
-				self.continent = data.get("continent", self.continent)
-				self.city = data.get("city", self.city)
-				self.timezone = data.get("timezone", self.timezone)
-				self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, country=self.country, continent=self.continent, city=self.city, timezone=self.timezone)
-		else:
-			# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
-			# If we couldn't determine the user's default timezone, the destTimezones array will be empty.
-			# This is to rescue the script from systems that might not have a recognizable timezone.
-			if len(self.destTimezones) > 0 and self.destTimezones[0] not in common_timezones:
-				self.destTimezones = []
-
-		# Construction of the add-on menu
-		self.menu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
-		self.optionsMenu = wx.Menu()
-		# For translators: Name of the menu of the add-on
-		self.topLevel = self.menu.AppendSubMenu(self.optionsMenu, _("Time Zoner"), "")
-		# For translators: Name of the sub-menu of the add-on
-		self.setTZOption = self.optionsMenu.Append(wx.ID_ANY, _("Configure Timezone Ring..."), _("Allows the configuration of timezones"))
-		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.showTimezoneDialog, self.setTZOption)
+				for confKey in data:
+					conf[configRoot][confKey] = data.get(confKey, "")
+			# Since we're importig settings, let's save the NVDA config before we delete the legacy data.json file.
+			# Otherwise, the settings will be lost if NVDA exits without the config being saved.
+			conf.save()
+			remove(configFile)
+		tzSettings = conf[configRoot]
+		self.destTimezones = tzSettings.get("timezones", self.destTimezones)
+		self.announceAbbriv = tzSettings.get("announceAbbriv", self.announceAbbriv)
+		self.ptr = tzSettings.get("ptr", self.ptr)
+		self.time = tzSettings.get("time", self.time)
+		self.date = tzSettings.get("date", self.date)
+		self.country = tzSettings.get("country", self.country)
+		self.continent = tzSettings.get("continent", self.continent)
+		self.city = tzSettings.get("city", self.city)
+		self.timezone = tzSettings.get("timezone", self.timezone)
+		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, country=self.country, continent=self.continent, city=self.city, timezone=self.timezone)
+		# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
+		# If we couldn't determine the user's default timezone, the destTimezones array will be empty.
+		# This is to rescue the script from systems that might not have a recognizable timezone.
+		if len(self.destTimezones) > 0 and self.destTimezones[0] not in common_timezones:
+			self.destTimezones = []
 		self.lastSpeechThread = None
+		self.mapTZToCountry()
+
+	# Builds an inverse mapping of timezone to countries.
+	# for the timezones the user has selected.
+	def mapTZToCountry(self):
+		global timezoneToCountry
+		timezoneToCountry.clear() # So we don't leak memory: in case the user adds and removes a lot of timezones, we don't want unused timezones being left over.
+		for countryCode in country_timezones:
+			timezonesInCountry = filter(lambda tz: tz in self.destTimezones, country_timezones[countryCode])
+			for tz in timezonesInCountry:
+				timezoneToCountry[tz] = country_names[countryCode]
 
 	def setFormatString(self):
 		self.formatString = getFormattedTimeMessage(continent=self.continent, country=self.country, city=self.city, time=self.time, date=self.date, timezone=self.timezone)
 
 	def save(self):
-		with open(self.configFile, "w") as fout:
-			fout.write(json.dumps({"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}))
+			conf[configRoot] = {"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}
 
 	def stopLastSpeakThread(self):
 		if self.lastSpeechThread is not None:
@@ -327,13 +348,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		description = _("Moves to and speaks the previous timezone in the timezone ring."),
 		gestures=["kb:NVDA+ALT+UPARROW"]
 	)
-	def script_prevTimezone(self, gesture):
+	def script_sayPreviousTimezone(self, gesture):
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
 		self.ptr -= 1
+		# If the pointer has gone negative, reset it to the highest timezone value
+		highestIndex = max(0, len(self.destTimezones) - 1)
 		if self.ptr < 0:
-			self.ptr = len(self.destTimezones) - 1
+			self.ptr = highestIndex
 		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
 		self.lastSpeechThread.start()
 		self.save()
@@ -342,27 +365,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		description = _("Moves to and speaks the next timezone in the timezone ring."),
 		gestures=["kb:NVDA+ALT+DOWNARROW"]
 	)
-	def script_nextTimezone(self, gesture):
+	def script_sayNextTimezone(self, gesture):
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
-		self.ptr = (self.ptr+1) % len(self.destTimezones)
+		l = len(self.destTimezones)
+		if l > 0:
+			self.ptr = (self.ptr+1) % l
+		else:
+			self.ptr = 0
 		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
 		self.lastSpeechThread.start()
 		self.save()
-
-	@script(
-		description=_("Brings up the timezone selection dialog."),
-		gestures=None
-	)
-	def script_showTimezoneSelector(self, gesture):
-		self.showTimezoneDialog(None)
-
-	def showTimezoneDialog(self, event):
-		def createTimezoneDialog():
-			dlg= TimezoneSelectorDialog(gui.mainFrame, self)
-			dlg.filterElement.SetFocus()
-			dlg.Layout()
-			dlg.Center(wx.BOTH|wx.Center)
-			dlg.Show()
-		wx.CallAfter(createTimezoneDialog) # The dialog must be created on the main thread.

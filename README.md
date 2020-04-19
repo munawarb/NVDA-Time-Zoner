@@ -48,7 +48,15 @@ From here on, you can press the following keys to announce times in your timezon
 
 When you first install the add-on, NVDA will default to your local timezone if it can get it.
 
+## Acknowledgements
+Thanks to [@ruifontes](https://github.com/ruifontes) for helping significantly to make this add-on compliant with NVAccess add-on code guidelines. Thanks to Myla for testing the add-on on NVDA 2019.2.
+
 ## Change Log
+
+### Version 1.04, released on 04/19/2020
+- Timezone announcements are now customizable. In addition, pressing NVDA+ALT+UP ARROW or NVDA+ALT+DOWN ARROW will cycle through the timezone ring, making the add-on user-friendly for configurations with many timezones set ([#6](https://github.com/munawarb/NVDA-Time-Zoner/issues/6))
+- The "Input Gestures" dialog uses a new category, "Time Zoner", to make it easier to find gestures for the Time Zoner add-on ([#5](https://github.com/munawarb/NVDA-Time-Zoner/issues/5))
+- Settings are configured using the NVDA Settings dialog instead of through a stand-alone dialog.
 
 ### Version 1.03, released on 03/21/2020
 - The add-on no longer crashes if the default timezone can't be set.

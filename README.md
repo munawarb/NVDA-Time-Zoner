@@ -53,6 +53,9 @@ Thanks to [@ruifontes](https://github.com/ruifontes) for helping significantly t
 
 ## Change Log
 
+### Version 1.05, released on 07/26/2020
+- Fixed a crash when announcing general timezones such as UTC or EST ([#7](https://github.com/munawarb/NVDA-Time-Zoner/issues/7))
+
 ### Version 1.04, released on 04/19/2020
 - Timezone announcements are now customizable. In addition, pressing NVDA+ALT+UP ARROW or NVDA+ALT+DOWN ARROW will cycle through the timezone ring, making the add-on user-friendly for configurations with many timezones set ([#6](https://github.com/munawarb/NVDA-Time-Zoner/issues/6))
 - The "Input Gestures" dialog uses a new category, "Time Zoner", to make it easier to find gestures for the Time Zoner add-on ([#5](https://github.com/munawarb/NVDA-Time-Zoner/issues/5))

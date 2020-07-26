@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 # timezone.py
-#A part of NVDAtimezone add-on
+#A part of NVDA timezone add-on
 #Copyright (C) 2020 Munawar Bijani
 #This file is covered by the GNU General Public License.
 #See the file LICENSE.txt for more details.
@@ -51,9 +51,13 @@ conf.spec[configRoot] = {
 }
 
 def getFormattedTimeMessage(time=True, date=True, country=False, continent=False, city=False, timezone=1):
+	# In the short message, the continent and city won't exist since we're looking at just a timezone such as UTC, EDT, etc.
+	# In this case, we will also assume no country exists, since the timezone is generalized.
 	components = []
+	noContinentAndCityComponents = []
 	if timezone == 0:
 		components.append("{timezone}")
+		noContinentAndCityComponents.append("{timezone}")
 	if country:
 		components.append("{country}" + (":" if continent or city else ""))
 	if continent:
@@ -62,21 +66,25 @@ def getFormattedTimeMessage(time=True, date=True, country=False, continent=False
 		components.append("{city} ")
 	if time:
 		components.append("{time}" + ("," if date else ""))
+		noContinentAndCityComponents.append("{time}" + ("," if date else ""))
 	if date:
 		components.append("{date}")
+		noContinentAndCityComponents.append("{date}")
 	if timezone == 1:
 		components.append("({timezone})")
-	return " ".join(components)
+		noContinentAndCityComponents.append("({timezone})")
+	return (" ".join(components), " ".join(noContinentAndCityComponents))
 globalPluginClass = None
 
 class SpeakThread(threading.Thread):
-	def __init__(self, ptr, repeatCount, destTimezones, announceAbbriv, formatString):
+	def __init__(self, ptr, repeatCount, destTimezones, announceAbbriv, formatStringL, formatStringS):
 		threading.Thread.__init__(self)
 		self.ptr = ptr
 		self.repeatCount = repeatCount
 		self.interrupted = False
 		self.destTimezones = destTimezones
-		self.formatString = formatString
+		self.formatStringL = formatStringL
+		self.formatStringS = formatStringS
 		self.announceAbbriv = announceAbbriv
 
 	def getTimezone(self):
@@ -100,13 +108,19 @@ class SpeakThread(threading.Thread):
 		# We'll use the winKernel here to announce the time and date in the user's locale.
 		theTime =winKernel.GetTimeFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.TIME_NOSECONDS, destTimezone, None)
 		theDate = winKernel.GetDateFormatEx(winKernel.LOCALE_NAME_USER_DEFAULT, winKernel.DATE_LONGDATE, destTimezone, None)
-		separator = selectedTz.index("/")
+		separator = selectedTz.find("/")
 		country = timezoneToCountry.get(selectedTz, "Unknown country")
-		continent = selectedTz[:separator]
-		city = selectedTz[separator+1:]
 		timezone = destTimezone.strftime("%Z") if self.announceAbbriv else selectedTz
-		# For translators: message to announce the time, date and timezone
-		core.callLater(0, ui.message, _(self.formatString.format(time=theTime, date=theDate, country=country, continent=continent, city=city, timezone=timezone)))
+		continent = ""
+		city = ""
+		if separator != -1:
+			continent = selectedTz[:separator]
+			city = selectedTz[separator+1:]
+			# For translators: message to announce the time, date and timezone
+			core.callLater(0, ui.message, _(self.formatStringL.format(time=theTime, date=theDate, country=country, continent=continent, city=city, timezone=timezone)))
+		else:
+			# For translators: message to announce the time, date and timezone
+			core.callLater(0, ui.message, _(self.formatStringS.format(time=theTime, date=theDate, timezone=timezone)))
 
 	def run(self):
 		self.sayInTimezone()
@@ -279,7 +293,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.continent=False
 		self.city=False
 		self.timezone=1
-		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, timezone=self.timezone) # Default configuration of time, date, timezone
+		self.formatStringL, self.formatStringS = getFormattedTimeMessage(time=self.time, date=self.date, timezone=self.timezone) # Default configuration of time, date, timezone
 		# For versions of add-ons upgrading to the NVDA  config version, we'll import the JSON file and then delete it.
 		# The JSON file was used to store config options before the rewrite to use the NVDA config API and is no longer needed. But we don't want the user to lose their settings because of the upgrade.
 		scriptPath = os.path.realpath(__file__)
@@ -304,7 +318,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.continent = tzSettings.get("continent", self.continent)
 		self.city = tzSettings.get("city", self.city)
 		self.timezone = tzSettings.get("timezone", self.timezone)
-		self.formatString = getFormattedTimeMessage(time=self.time, date=self.date, country=self.country, continent=self.continent, city=self.city, timezone=self.timezone)
+		self.formatStringL, self.formatStringS = getFormattedTimeMessage(time=self.time, date=self.date, country=self.country, continent=self.continent, city=self.city, timezone=self.timezone)
 		# We'll try to set the local timezone as the default, but if it doesn't exist we'll just create an empty timezone list.
 		# If we couldn't determine the user's default timezone, the destTimezones array will be empty.
 		# This is to rescue the script from systems that might not have a recognizable timezone.
@@ -324,7 +338,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				timezoneToCountry[tz] = country_names[countryCode]
 
 	def setFormatString(self):
-		self.formatString = getFormattedTimeMessage(continent=self.continent, country=self.country, city=self.city, time=self.time, date=self.date, timezone=self.timezone)
+		self.formatStringL, self.formatStringS = getFormattedTimeMessage(continent=self.continent, country=self.country, city=self.city, time=self.time, date=self.date, timezone=self.timezone)
 
 	def save(self):
 			conf[configRoot] = {"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}
@@ -341,7 +355,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
-		self.lastSpeechThread = SpeakThread(self.ptr, getLastScriptRepeatCount(), self.destTimezones, self.announceAbbriv, self.formatString)
+		self.lastSpeechThread = SpeakThread(self.ptr, getLastScriptRepeatCount(), self.destTimezones, self.announceAbbriv, self.formatStringL, self.formatStringS)
 		self.lastSpeechThread.start()
 
 	@script(
@@ -357,7 +371,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		highestIndex = max(0, len(self.destTimezones) - 1)
 		if self.ptr < 0:
 			self.ptr = highestIndex
-		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
+		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatStringL, self.formatStringS)
 		self.lastSpeechThread.start()
 		self.save()
 
@@ -374,6 +388,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.ptr = (self.ptr+1) % l
 		else:
 			self.ptr = 0
-		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatString)
+		self.lastSpeechThread = SpeakThread(self.ptr, 0, self.destTimezones, self.announceAbbriv, self.formatStringL, self.formatStringS)
 		self.lastSpeechThread.start()
 		self.save()

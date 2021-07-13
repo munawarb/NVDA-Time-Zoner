@@ -4,7 +4,7 @@ An add-on for NVDA to announce the time in selected timezones.
 ## Information
 * Author: Munawar Bijani
 * Download [stable version][1]
-* Compatibility: NVDA 2019.2.1 and later
+* Compatibility: NVDA 2021.1 and later
 
 ## Introduction
 For a very long time now, Windows has had the ability to show multiple clocks from different timezones. Users can customize the clocks and they become instantly visible.

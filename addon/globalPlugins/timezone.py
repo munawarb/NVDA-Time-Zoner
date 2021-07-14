@@ -20,7 +20,7 @@ import speech
 from datetime import datetime
 pythonVersion = int(sys.version[:1])
 # Here, we use the Python2 or 3 versions of pytz
-sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules", "2" if pythonVersion == 2 else "3"))
+sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules"))
 import pytz
 from pytz import timezone, common_timezones, country_names, country_timezones
 from pytz.exceptions import UnknownTimeZoneError

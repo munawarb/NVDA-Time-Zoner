@@ -53,6 +53,10 @@ Thanks to [@ruifontes](https://github.com/ruifontes) for helping significantly t
 
 ## Change Log
 
+### Version 2.00, released on 07/14/2021
+- Now compatible with version 2021.1 of NVDA.
+- BREAKING CHANGE: This add-on is no longer compatible with legacy versions of NVDA. Please use version 1.06 or earlier for legacy support.
+
 ### Version 1.05, released on 07/26/2020
 - Fixed a crash when announcing general timezones such as UTC or EST ([#7](https://github.com/munawarb/NVDA-Time-Zoner/issues/7))
 

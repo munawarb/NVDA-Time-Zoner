@@ -4,7 +4,7 @@ An add-on for NVDA to announce the time in selected timezones.
 ## Information
 * Author: Munawar Bijani
 * Download [stable version][1]
-* Compatibility: NVDA 2022.1 and later
+* Compatibility: NVDA 2021.1 and later
 
 ## Introduction
 For a very long time now, Windows has had the ability to show multiple clocks from different timezones. Users can customize the clocks and they become instantly visible.
@@ -55,6 +55,7 @@ Thanks to [@ruifontes](https://github.com/ruifontes) for helping significantly t
 
 ### Version 3.00, released on 03/24/2022
 - Now compatible with version 2022.1 of NVDA.
+- Fixed an issue where two configuration categories would show up if the add-on was reloaded ([#10](https://github.com/munawarb/NVDA-Time-Zoner/issues/10))
 
 ### Version 2.00, released on 07/14/2021
 - Now compatible with version 2021.1 of NVDA.

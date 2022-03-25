@@ -18,8 +18,6 @@ import ui
 import core
 import speech
 from datetime import datetime
-pythonVersion = int(sys.version[:1])
-# Here, we use the Python2 or 3 versions of pytz
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules"))
 import pytz
 from pytz import timezone, common_timezones, country_names, country_timezones
@@ -326,6 +324,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.destTimezones = []
 		self.lastSpeechThread = None
 		self.mapTZToCountry()
+
+	def terminate(self):
+		NVDASettingsDialog.categoryClasses.remove(TimezoneSelectorDialog)
+
 
 	# Builds an inverse mapping of timezone to countries.
 	# for the timezones the user has selected.

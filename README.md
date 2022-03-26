@@ -53,6 +53,9 @@ Thanks to [@ruifontes](https://github.com/ruifontes) for helping significantly t
 
 ## Change Log
 
+### Version 3.01, released on 03/26/2022
+- Blocked scripts from running in NVDA Secure Mode.
+
 ### Version 3.00, released on 03/24/2022
 - Now compatible with version 2022.1 of NVDA.
 - Fixed an issue where two configuration categories would show up if the add-on was reloaded ([#10](https://github.com/munawarb/NVDA-Time-Zoner/issues/10))

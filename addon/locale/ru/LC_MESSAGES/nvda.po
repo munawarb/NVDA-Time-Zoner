@@ -8,22 +8,20 @@ msgstr ""
 "Project-Id-Version: 'timeZone' '1.5'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
 "POT-Creation-Date: 2020-03-14 20:16+0000\n"
-"PO-Revision-Date: 2024-01-07 09:41+0300\n"
-"Last-Translator: \n"
-"Language-Team: Equipa portuguesa do NVDA: Ângelo Abrantes <ampa4374@gmail."
-"com> e Rui Fontes <rui.fontes@tiflotecnia.com>\n"
-"Language: pt_PT\n"
+"PO-Revision-Date: 2024-01-07 10:11+0300\n"
+"Last-Translator: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
+"Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.4.2\n"
-"X-Poedit-SourceCharset: UTF-8\n"
 
 #. For translators: message to inform there are no timezones defined
 #: addon\globalPlugins\timezone.py:53
 msgid "No timezones set"
-msgstr "Nenhum fuso horário definido"
+msgstr "Часовые пояса не установлены"
 
 #. For translators: message to announce the time, date and timezone
 #: addon\globalPlugins\timezone.py:65
@@ -33,73 +31,74 @@ msgstr "%s, %s (%s)"
 
 #: addon\globalPlugins\timezone.py:72
 msgid "Configure Timezone Ring..."
-msgstr "Configurar o anel de fusos horários..."
+msgstr "Настроить кольцо часового пояса..."
 
 #: addon\globalPlugins\timezone.py:75
 msgid "Filter:"
-msgstr "Filtrar:"
+msgstr "Фильтр:"
 
 #. For translators: Name of time zones list
 #: addon\globalPlugins\timezone.py:81
 msgid "Timezones (select to add, deselect to remove)"
-msgstr "Fusos horários (marque para adicionar e desmarque para remover)"
+msgstr ""
+"Часовые пояса (Отметте флажок для добавления, снимите флажок для удаления)"
 
 #. For translators: Name of time zones ring list
 #: addon\globalPlugins\timezone.py:84
 msgid "Timezone Ring"
-msgstr "Anel de fusos horários"
+msgstr "Кольцо часового пояса"
 
 #. For translators: Name of the button to remove a time zone
 #: addon\globalPlugins\timezone.py:92
 msgid "Remove"
-msgstr "Remover"
+msgstr "Удалить"
 
 #. For translators: Name of the button to move up a time zone
 #: addon\globalPlugins\timezone.py:95
 msgid "Move Up"
-msgstr "Mover para cima"
+msgstr "Переместить вверх"
 
 #. For translators: Name of the button to move down a time zone
 #: addon\globalPlugins\timezone.py:98
 msgid "Move Down"
-msgstr "Mover para baixo"
+msgstr "Переместить вниз"
 
 #. For translators: The label for the checkbox to announce timezones in abbreviated form.
 #: addon\globalPlugins\timezone.py:101
 msgid "Announce abbreviated timezones"
-msgstr "Anunciar fusos horários abreviados"
+msgstr "Объявлять сокращённые часовые пояса"
 
 #. For translators: Name of the button to save the selections of time zones
 #: addon\globalPlugins\timezone.py:107
 msgid "Save"
-msgstr "Guardar"
+msgstr "Сохранить"
 
 #. For translators: Name of the button to exit without saving the selections of time zones
 #: addon\globalPlugins\timezone.py:110
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "Отменить"
 
 #. For translators: Message to announce the number of matches found
 #: addon\globalPlugins\timezone.py:173
 #, python-format
 msgid "%d results now showing"
-msgstr "A mostrar %d resultados"
+msgstr "показано %d результатов"
 
 #. For translators: Name of the menu of the add-on
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on to be shown on installation and add-on information.
 #: addon\globalPlugins\timezone.py:224 buildVars.py:17
 msgid "Time Zoner"
-msgstr "Anúncio de horas em diferentes fusos horários"
+msgstr "Часовые пояса"
 
 #. For translators: Name of the sub-menu of the add-on
 #: addon\globalPlugins\timezone.py:226
 msgid "Configure Timezone Ring"
-msgstr "Configurar o anel de fusos horários"
+msgstr "Настроить кольцо часового пояса"
 
 #: addon\globalPlugins\timezone.py:226
 msgid "Allows the configuration of timezones"
-msgstr "Permite a configuração de fusos horários"
+msgstr "Позволяет настроить часовые пояса"
 
 #: addon\globalPlugins\timezone.py:232
 msgid ""
@@ -107,13 +106,13 @@ msgid ""
 "timezone ring according to the amount of times this key is pressed in rapid "
 "succession."
 msgstr ""
-"Anuncia a hora e data no fuso horário especificado no anel de fusos "
-"horários, de acordo com o número de vezes que o comando foi rapidamente "
-"pressionado."
+"Произносит время и дату в указанном часовом поясе в настроенном кольце "
+"часовых поясов в зависимости от количества нажатий этой клавиши в быстрой "
+"последовательности."
 
 #: addon\globalPlugins\timezone.py:245
 msgid "Brings up the timezone selection dialog."
-msgstr "Abre a janela \"Configurar anel de fusos horários\"."
+msgstr "Открывает диалоговое окно выбора часового пояса."
 
 #. Add-on description
 #. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
@@ -123,8 +122,7 @@ msgid ""
 "to set timezones you want to hear. After you do this, press NVDA+ALT+T to "
 "cycle through your timezone ring and hear times in your selected timezones."
 msgstr ""
-"Anuncia a hora e data nos fusos horários seleccionados. Use a opção "
-"\"Configurar anel de fusos horários\", no menu Preferências do NVDA, para "
-"definir os fusos horários que deseja que sejam anunciados. Depois pressione "
-"NVDA+Alt+t para percorrer o anel de fusos horários e ouvir a hora e data "
-"daquele que deseja."
+"Объявляет время и дату в выбранных часовых поясах. Используйте меню "
+"настроек, чтобы установить часовые пояса, которые вы хотите прослушать. "
+"После этого нажмите NVDA+ALT+T, чтобы переключиться кольцу часового пояса и "
+"услышать время в выбранных часовых поясах."

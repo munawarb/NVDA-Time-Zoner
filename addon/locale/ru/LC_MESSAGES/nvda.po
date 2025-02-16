@@ -7,100 +7,97 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 'timeZone' '1.5'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2020-03-14 20:16+0000\n"
-"PO-Revision-Date: 2024-01-07 10:11+0300\n"
+"POT-Creation-Date: 2025-02-16 22:13+0500\n"
+"PO-Revision-Date: 2025-02-16 22:19+0500\n"
 "Last-Translator: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
 "Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
-"Language: ru\n"
+"Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.5\n"
+"X-Poedit-Basepath: ../../../..\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: addon/globalPlugins\n"
+"X-Poedit-SearchPath-2: addon/globalPlugins/modules/pytz\n"
+"X-Poedit-SearchPath-3: .\n"
+"X-Poedit-SearchPath-4: .\n"
+"X-Poedit-SearchPath-5: addon/globalPlugins/modules/tzlocal\n"
 
-#. For translators: message to inform there are no timezones defined
-#: addon\globalPlugins\timezone.py:53
+#: addon/globalPlugins/timezone.py:98
 msgid "No timezones set"
 msgstr "Часовые пояса не установлены"
 
-#. For translators: message to announce the time, date and timezone
-#: addon\globalPlugins\timezone.py:65
-#, python-format
-msgid "%s, %s (%s)"
-msgstr "%s, %s (%s)"
+#: addon/globalPlugins/timezone.py:128 addon/globalPlugins/timezone.py:273
+#: buildVars.py:17
+msgid "Time Zoner"
+msgstr "Часовые пояса"
 
-#: addon\globalPlugins\timezone.py:72
-msgid "Configure Timezone Ring..."
-msgstr "Настроить кольцо часового пояса..."
-
-#: addon\globalPlugins\timezone.py:75
+#: addon/globalPlugins/timezone.py:132
 msgid "Filter:"
 msgstr "Фильтр:"
 
-#. For translators: Name of time zones list
-#: addon\globalPlugins\timezone.py:81
+#: addon/globalPlugins/timezone.py:138
 msgid "Timezones (select to add, deselect to remove)"
 msgstr ""
 "Часовые пояса (Отметте флажок для добавления, снимите флажок для удаления)"
 
-#. For translators: Name of time zones ring list
-#: addon\globalPlugins\timezone.py:84
+#: addon/globalPlugins/timezone.py:141
 msgid "Timezone Ring"
 msgstr "Кольцо часового пояса"
 
-#. For translators: Name of the button to remove a time zone
-#: addon\globalPlugins\timezone.py:92
+#: addon/globalPlugins/timezone.py:149
 msgid "Remove"
 msgstr "Удалить"
 
-#. For translators: Name of the button to move up a time zone
-#: addon\globalPlugins\timezone.py:95
+#: addon/globalPlugins/timezone.py:152
 msgid "Move Up"
 msgstr "Переместить вверх"
 
-#. For translators: Name of the button to move down a time zone
-#: addon\globalPlugins\timezone.py:98
+#: addon/globalPlugins/timezone.py:155
 msgid "Move Down"
 msgstr "Переместить вниз"
 
-#. For translators: The label for the checkbox to announce timezones in abbreviated form.
-#: addon\globalPlugins\timezone.py:101
+#: addon/globalPlugins/timezone.py:158
 msgid "Announce abbreviated timezones"
 msgstr "Объявлять сокращённые часовые пояса"
 
-#. For translators: Name of the button to save the selections of time zones
-#: addon\globalPlugins\timezone.py:107
-msgid "Save"
-msgstr "Сохранить"
+#: addon/globalPlugins/timezone.py:161
+msgid "Components"
+msgstr "Компоненты"
 
-#. For translators: Name of the button to exit without saving the selections of time zones
-#: addon\globalPlugins\timezone.py:110
-msgid "Cancel"
-msgstr "Отменить"
+#: addon/globalPlugins/timezone.py:162
+msgid "Continent"
+msgstr "Континент"
 
-#. For translators: Message to announce the number of matches found
-#: addon\globalPlugins\timezone.py:173
+#: addon/globalPlugins/timezone.py:165
+msgid "Country"
+msgstr "Страна"
+
+#: addon/globalPlugins/timezone.py:168
+msgid "City"
+msgstr "Город"
+
+#: addon/globalPlugins/timezone.py:171
+msgid "Time"
+msgstr "Время"
+
+#: addon/globalPlugins/timezone.py:174
+msgid "Date"
+msgstr "Дата"
+
+#: addon/globalPlugins/timezone.py:177
+msgid "Announce Timezone At:"
+msgstr "Объявлять часовые пояса:"
+
+#: addon/globalPlugins/timezone.py:240
 #, python-format
 msgid "%d results now showing"
 msgstr "показано %d результатов"
 
-#. For translators: Name of the menu of the add-on
-#. Add-on summary, usually the user visible name of the addon.
-#. Translators: Summary for this add-on to be shown on installation and add-on information.
-#: addon\globalPlugins\timezone.py:224 buildVars.py:17
-msgid "Time Zoner"
-msgstr "Часовые пояса"
-
-#. For translators: Name of the sub-menu of the add-on
-#: addon\globalPlugins\timezone.py:226
-msgid "Configure Timezone Ring"
-msgstr "Настроить кольцо часового пояса"
-
-#: addon\globalPlugins\timezone.py:226
-msgid "Allows the configuration of timezones"
-msgstr "Позволяет настроить часовые пояса"
-
-#: addon\globalPlugins\timezone.py:232
+#: addon/globalPlugins/timezone.py:355
 msgid ""
 "Speaks the time and date in the specified timezone in the configured "
 "timezone ring according to the amount of times this key is pressed in rapid "
@@ -110,19 +107,48 @@ msgstr ""
 "часовых поясов в зависимости от количества нажатий этой клавиши в быстрой "
 "последовательности."
 
-#: addon\globalPlugins\timezone.py:245
-msgid "Brings up the timezone selection dialog."
-msgstr "Открывает диалоговое окно выбора часового пояса."
+#: addon/globalPlugins/timezone.py:368
+msgid "Moves to and speaks the previous timezone in the timezone ring."
+msgstr ""
+"Переходит к предыдущему часовому поясу в кольце часовых поясов и озвучивает "
+"его."
 
-#. Add-on description
-#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: addon/globalPlugins/timezone.py:387
+msgid "Moves to and speaks the next timezone in the timezone ring."
+msgstr ""
+"Переходит к следующему часовому поясу в кольце часовых поясов и озвучивает "
+"его."
+
 #: buildVars.py:20
 msgid ""
-"Announces the time and date in selected timezones. Use the Preferences menu "
-"to set timezones you want to hear. After you do this, press NVDA+ALT+T to "
-"cycle through your timezone ring and hear times in your selected timezones."
+"Announces the time and date in selected timezones. Use the Settings dialog "
+"to set timezones you want to hear. After you do this, press NVDA+ALT+UP/DOWN "
+"ARROW to cycle through your timezone ring and hear times in your selected "
+"timezones."
 msgstr ""
 "Объявляет время и дату в выбранных часовых поясах. Используйте меню "
 "настроек, чтобы установить часовые пояса, которые вы хотите прослушать. "
-"После этого нажмите NVDA+ALT+T, чтобы переключиться кольцу часового пояса и "
-"услышать время в выбранных часовых поясах."
+"После этого нажмите NVDA+ALT+ стрелки ВВЕРХ/ ВНИЗ, чтобы переключаться по "
+"кольцу часовых поясов и услышать время в выбранных часовых поясах."
+
+#, python-format
+#~ msgid "%s, %s (%s)"
+#~ msgstr "%s, %s (%s)"
+
+#~ msgid "Configure Timezone Ring..."
+#~ msgstr "Настроить кольцо часового пояса..."
+
+#~ msgid "Save"
+#~ msgstr "Сохранить"
+
+#~ msgid "Cancel"
+#~ msgstr "Отменить"
+
+#~ msgid "Configure Timezone Ring"
+#~ msgstr "Настроить кольцо часового пояса"
+
+#~ msgid "Allows the configuration of timezones"
+#~ msgstr "Позволяет настроить часовые пояса"
+
+#~ msgid "Brings up the timezone selection dialog."
+#~ msgstr "Открывает диалоговое окно выбора часового пояса."

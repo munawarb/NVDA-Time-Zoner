@@ -326,8 +326,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.mapTZToCountry()
 
 	def terminate(self):
-		NVDASettingsDialog.categoryClasses.remove(TimezoneSelectorDialog)
-
+		try:
+			NVDASettingsDialog.categoryClasses.remove(TimezoneSelectorDialog)
+		except ValueError as e:
+			pass
 
 	# Builds an inverse mapping of timezone to countries.
 	# for the timezones the user has selected.
@@ -343,7 +345,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self.formatStringL, self.formatStringS = getFormattedTimeMessage(continent=self.continent, country=self.country, city=self.city, time=self.time, date=self.date, timezone=self.timezone)
 
 	def save(self):
-			conf[configRoot] = {"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}
+		conf[configRoot] = {"announceAbbriv": self.announceAbbriv, "timezones": self.destTimezones, "ptr": self.ptr, "continent": self.continent, "country": self.country, "city": self.city, "time": self.time, "date": self.date, "timezone": self.timezone}
 
 	def stopLastSpeakThread(self):
 		if self.lastSpeechThread is not None:
@@ -354,6 +356,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gestures=["kb:NVDA+ALT+T"]
 	)
 	def script_sayTimezoneTime(self, gesture):
+		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
+			return
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
@@ -365,6 +369,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gestures=["kb:NVDA+ALT+UPARROW"]
 	)
 	def script_sayPreviousTimezone(self, gesture):
+		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
+			return
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
@@ -382,6 +388,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gestures=["kb:NVDA+ALT+DOWNARROW"]
 	)
 	def script_sayNextTimezone(self, gesture):
+		if globalVars.appArgs.secure: # Don't allow to run on UAC screens.
+			return
 		# We'll spawn a new thread here since the first retrieval of the timezone data has a slight delay and it will freeze NVDA for a second or two.
 		# First, signal the last thread to die if it's taking too long and we've pressed this key multiple times.
 		self.stopLastSpeakThread()
